@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Pricing & Credits - AI Portal{% endblock %}
+
+{% block content %}
+<div style="text-align: center; margin-bottom: 3rem;">
+    <h1 style="font-size: 2.5rem; margin-bottom: 1rem; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Choose Your Plan</h1>
+    <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto;">Get more credits to unlock the full potential of AI Student Portal.</p>
+</div>
+
+<div style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; margin-bottom: 4rem;">
+    
+    <!-- Free Tier -->
+    <div style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 2rem; width: 300px; backdrop-filter: blur(10px); display: flex; flex-direction: column;">
+        <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--text-main);">Free</h3>
+        <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text-main);">$0<span style="font-size: 1rem; color: var(--text-muted); font-weight: 400;">/forever</span></div>
+        <ul style="list-style: none; padding: 0; margin-bottom: 2rem; color: var(--text-muted); font-size: 0.95rem; flex-grow: 1;">
+            <li style="margin-bottom: 0.75rem;"><i class="fa-solid fa-check" style="color: var(--accent); margin-right: 0.5rem;"></i> 3 Free Credits on Signup</li>
+            <li style="margin-bottom: 0.75rem;"><i class="fa-solid fa-check" style="color: var(--accent); margin-right: 0.5rem;"></i> Access to all 13 tools</li>
+            <li style="margin-bottom: 0.75rem;"><i class="fa-solid fa-check" style="color: var(--accent); margin-right: 0.5rem;"></i> Standard generation speed</li>
+            <li style="margin-bottom: 0.75rem; color: #64748b;"><i class="fa-solid fa-xmark" style="margin-right: 0.5rem;"></i> No watermark removal</li>
+        </ul>
+        <button disabled style="width: 100%; padding: 0.85rem; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); border-radius: 8px; color: var(--text-muted); font-weight: 600; cursor: not-allowed;">
+            Current Plan
+        </button>
+    </div>
+
+    <!-- Credit Pack -->
+    <div style="background: linear-gradient(180deg, rgba(59, 130, 246, 0.1) 0%, var(--card-bg) 100%); border: 1px solid var(--secondary); border-radius: 16px; padding: 2rem; width: 300px; backdrop-filter: blur(10px); position: relative; display: flex; flex-direction: column; transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+        <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--secondary); color: white; padding: 0.25rem 1rem; border-radius: 20px; font-size: 0.8rem; font-weight: bold; letter-spacing: 1px;">POPULAR</div>
+        <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--text-main);">Credit Pack</h3>
+        <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text-main);">$4.99<span style="font-size: 1rem; color: var(--text-muted); font-weight: 400;">/pack</span></div>
+        <ul style="list-style: none; padding: 0; margin-bottom: 2rem; color: var(--text-muted); font-size: 0.95rem; flex-grow: 1;">
+            <li style="margin-bottom: 0.75rem;"><i class="fa-solid fa-check" style="color: var(--secondary); margin-right: 0.5rem;"></i> +50 Credits</li>
+            <li style="margin-bottom: 0.75rem;"><i class="fa-solid fa-check" style="color: var(--secondary); margin-right: 0.5rem;"></i> Credits never expire</li>
+            <li style="margin-bottom: 0.75rem;"><i class="fa-solid fa-check" style="color: var(--secondary); margin-right: 0.5rem;"></i> Priority Support</li>
+            <li style="margin-bottom: 0.75rem;"><i class="fa-solid fa-check" style="color: var(--secondary); margin-right: 0.5rem;"></i> Remove Watermarks</li>
+        </ul>
+        <button style="width: 100%; padding: 0.85rem; background: var(--secondary); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" onclick="alert('Payment Gateway Integration Coming Soon!')">
+            Buy 50 Credits
+        </button>
+    </div>
+
+    <!-- Pro Plan -->
+    <div style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 2rem; width: 300px; backdrop-filter: blur(10px); display: flex; flex-direction: column;">
+        <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--text-main);">Pro <span style="font-size: 0.8rem; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 0.1rem 0.4rem; border-radius: 4px; vertical-align: middle;">VIP</span></h3>
+        <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text-main);">$14.99<span style="font-size: 1rem; color: var(--text-muted); font-weight: 400;">/mo</span></div>
+        <ul style="list-style: none; padding: 0; margin-bottom: 2rem; color: var(--text-muted); font-size: 0.95rem; flex-grow: 1;">
+            <li style="margin-bottom: 0.75rem;"><i class="fa-solid fa-check" style="color: #f59e0b; margin-right: 0.5rem;"></i> Unlimited Credits</li>
+            <li style="margin-bottom: 0.75rem;"><i class="fa-solid fa-check" style="color: #f59e0b; margin-right: 0.5rem;"></i> Fastest Processing Speed</li>
+            <li style="margin-bottom: 0.75rem;"><i class="fa-solid fa-check" style="color: #f59e0b; margin-right: 0.5rem;"></i> Early access to new tools</li>
+            <li style="margin-bottom: 0.75rem;"><i class="fa-solid fa-check" style="color: #f59e0b; margin-right: 0.5rem;"></i> Dedicated Account Manager</li>
+        </ul>
+        <button style="width: 100%; padding: 0.85rem; background: linear-gradient(135deg, #f59e0b, #d97706); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" onclick="alert('Subscription Gateway Integration Coming Soon!')">
+            Subscribe Now
+        </button>
+    </div>
+
+</div>
+{% endblock content %}

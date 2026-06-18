@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+
+{% block title %}Data to Chart - AI Portal{% endblock %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="hero" {% if success %}style="display:none;"{% endif %}>
+    <h1><i class="fa-solid fa-chart-pie" style="color: #10b981;"></i> Data to Chart</h1>
+    <p>Input text containing statistics and our AI will automatically parse the numbers and generate beautiful interactive charts.</p>
+</div>
+
+{% if error %}
+<div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #f87171; padding: 1rem; border-radius: 8px; margin-bottom: 2rem; max-width: 800px; width: 100%; text-align: center; margin-left: auto; margin-right: auto;">
+    {{ error }}
+</div>
+{% endif %}
+
+{% if not success %}
+<div class="grid" style="grid-template-columns: 1fr; max-width: 600px; margin: 0 auto;">
+    <div class="card" style="align-items: center; text-align: center;">
+        <div class="card-icon">
+            <i class="fa-solid fa-chart-column"></i>
+        </div>
+        <h2>Generate Chart</h2>
+        <p>Paste text with numerical data (e.g., "Apple sold 50 units, Banana 30 units...").</p>
+        
+        <form id="upload-form" method="post" style="width: 100%; margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            {% csrf_token %}
+            
+            <div style="text-align: left;">
+                <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.9rem;">1. Select Chart Type</label>
+                <select name="chart_type" style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); border-radius: 8px; color: var(--text-main); font-size: 1rem;">
+                    <option value="bar" style="color: #000; background: #fff;">📊 Bar Chart</option>
+                    <option value="pie" style="color: #000; background: #fff;">🥧 Pie Chart</option>
+                    <option value="line" style="color: #000; background: #fff;">📈 Line Chart</option>
+                    <option value="doughnut" style="color: #000; background: #fff;">🍩 Doughnut Chart</option>
+                    <option value="polarArea" style="color: #000; background: #fff;">💠 Polar Area</option>
+                </select>
+            </div>
+
+            <div style="text-align: left;">
+                <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.9rem;">2. Paste Data Text</label>
+                <textarea id="text-input" name="source_text" rows="5" placeholder="e.g. In Q1 we made $500, Q2 was $750, and Q3 reached $1200." required style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); border-radius: 8px; color: var(--text-main); font-family: inherit; resize: vertical;"></textarea>
+            </div>
+
+            <button id="submit-btn" type="submit" style="padding: 1rem; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: transform 0.2s; font-size: 1.1rem; margin-top: 1rem;">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Chart
+            </button>
+            
+            <div id="progress-container" style="display: none; width: 100%; background: rgba(255,255,255,0.1); border-radius: 8px; height: 10px; overflow: hidden; margin-top: 0.5rem; position: relative;">
+                <div id="progress-bar" style="width: 0%; height: 100%; background: #10b981; transition: width 0.5s ease, background 0.3s ease;"></div>
+            </div>
+            <div id="progress-text" style="display: none; font-size: 0.85rem; color: #94a3b8; text-align: center;">Extracting data via AI...</div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('upload-form').addEventListener('submit', function(e) {
+    if(!document.getElementById('text-input').value) return;
+    
+    const submitBtn = document.getElementById('submit-btn');
+    const progressContainer = document.getElementById('progress-container');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
+    submitBtn.style.opacity = '0.7';
+    
+    progressContainer.style.display = 'block';
+    progressText.style.display = 'block';
+    
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += Math.random() * 5 + 2; 
+        if (progress > 95) progress = 95;
+        progressBar.style.width = progress + '%';
+    }, 1000);
+    
+    window.addEventListener('pagehide', function() {
+        clearInterval(interval);
+    });
+});
+</script>
+
+{% else %}
+
+<div style="max-width: 900px; margin: 0 auto;">
+    <div class="card" style="padding: 3rem; background: #ffffff;">
+        
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <h1 id="chart-title" style="font-size: 2rem; color: #1e293b; margin-bottom: 0.5rem;">{{ chart_data.chart_title }}</h1>
+            <p style="color: #64748b; font-weight: 500;">AI Generated {{ chart_type|title }} Chart</p>
+        </div>
+        
+        <div style="position: relative; height: 500px; width: 100%;">
+            <canvas id="myChart"></canvas>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; margin-top: 3rem; justify-content: center;">
+            <button onclick="downloadChart()" style="padding: 0.8rem 2rem; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem; transition: transform 0.2s;">
+                <i class="fa-solid fa-download"></i> Download Chart (PNG)
+            </button>
+            <a href="/data_chart/" style="padding: 0.8rem 2rem; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; color: #475569; font-weight: 600; cursor: pointer; font-size: 1.1rem; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: transform 0.2s;">
+                <i class="fa-solid fa-plus"></i> Make Another
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    const rawData = JSON.parse('{{ chart_json_string|escapejs }}');
+    const chartType = '{{ chart_type }}';
+    
+    const labels = rawData.labels;
+    const dataValues = rawData.values;
+    const dataLabel = rawData.data_label;
+    
+    // Generate some beautiful colors
+    const backgroundColors = [
+        'rgba(59, 130, 246, 0.7)',
+        'rgba(236, 72, 153, 0.7)',
+        'rgba(16, 185, 129, 0.7)',
+        'rgba(245, 158, 11, 0.7)',
+        'rgba(139, 92, 246, 0.7)',
+        'rgba(14, 165, 233, 0.7)',
+        'rgba(239, 68, 68, 0.7)'
+    ];
+    
+    const borderColors = [
+        'rgba(59, 130, 246, 1)',
+        'rgba(236, 72, 153, 1)',
+        'rgba(16, 185, 129, 1)',
+        'rgba(245, 158, 11, 1)',
+        'rgba(139, 92, 246, 1)',
+        'rgba(14, 165, 233, 1)',
+        'rgba(239, 68, 68, 1)'
+    ];
+    
+    const ctx = document.getElementById('myChart').getContext('2d');
+    
+    const chartConfig = {
+        type: chartType,
+        data: {
+            labels: labels,
+            datasets: [{
+                label: dataLabel,
+                data: dataValues,
+                backgroundColor: chartType === 'line' ? 'rgba(59, 130, 246, 0.2)' : backgroundColors,
+                borderColor: chartType === 'line' ? 'rgba(59, 130, 246, 1)' : borderColors,
+                borderWidth: 2,
+                fill: chartType === 'line',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        font: {
+                            family: "'Inter', sans-serif",
+                            size: 14
+                        },
+                        color: '#475569'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                    titleFont: { size: 14, family: "'Inter', sans-serif" },
+                    bodyFont: { size: 14, family: "'Inter', sans-serif" },
+                    padding: 12,
+                    cornerRadius: 8
+                }
+            },
+            scales: (chartType === 'bar' || chartType === 'line') ? {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(203, 213, 225, 0.5)' },
+                    ticks: { color: '#64748b', font: { family: "'Inter', sans-serif" } }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#64748b', font: { family: "'Inter', sans-serif" } }
+                }
+            } : {}
+        }
+    };
+    
+    const myChart = new Chart(ctx, chartConfig);
+    
+    function downloadChart() {
+        const link = document.createElement('a');
+        link.download = 'chart.png';
+        link.href = document.getElementById('myChart').toDataURL('image/png');
+        link.click();
+    }
+</script>
+
+{% endif %}
+{% endblock %}

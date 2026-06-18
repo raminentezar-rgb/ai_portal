@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="hero">
+    <h1>Welcome to the AI Portal</h1>
+    <p>Select an AI tool below to start transforming your content.</p>
+</div>
+
+<div class="grid">
+    <!-- Card 1: Text & Voice -->
+    <a href="/text_voice/" class="card">
+        <div class="card-icon">
+            <i class="fa-solid fa-microphone-lines"></i>
+        </div>
+        <h2>Voice & Text AI</h2>
+        <p>Convert your text files into natural sounding voice, or transcribe audio into text instantly.</p>
+    </a>
+
+    <!-- Card 2: Video to Text -->
+    <a href="/video_text/" class="card">
+        <div class="card-icon">
+            <i class="fa-solid fa-file-video"></i>
+        </div>
+        <h2>Video to Text</h2>
+        <p>Upload video files and automatically generate accurate text transcripts and educational booklets.</p>
+    </a>
+
+    <!-- Card 3: Text to Infographic -->
+    <a href="/text_inograf/" class="card">
+        <div class="card-icon">
+            <i class="fa-solid fa-image"></i>
+        </div>
+        <h2>Text to Infographic</h2>
+        <p>Turn plain text and documents into engaging, visually appealing infographics automatically.</p>
+    </a>
+
+    <!-- Card 4: Video to Infographic -->
+    <a href="/video_inograf/" class="card">
+        <div class="card-icon">
+            <i class="fa-solid fa-photo-film"></i>
+        </div>
+        <h2>Video to Infographic</h2>
+        <p>Extract key concepts from any video file and summarize them into an easy-to-read infographic.</p>
+    </a>
+
+    <!-- Card 5: YouTube to Infographic -->
+    <a href="/youtube_inograf/" class="card">
+        <div class="card-icon">
+            <i class="fa-brands fa-youtube"></i>
+        </div>
+        <h2>YouTube to Infographic</h2>
+        <p>Paste a YouTube link and our AI will digest the content to generate a comprehensive infographic.</p>
+    </a>
+
+    <!-- Card 6: YouTube to Text -->
+    <a href="/youtube_text/" class="card">
+        <div class="card-icon">
+            <i class="fa-solid fa-closed-captioning"></i>
+        </div>
+        <h2>YouTube to Text</h2>
+        <p>Convert any YouTube video directly into readable text, study notes, or subtitles with a single link.</p>
+    </a>
+    <!-- Card 7: Pic to Text -->
+    <a href="/pic_text/" class="card">
+        <div class="card-icon">
+            <i class="fa-solid fa-camera-retro"></i>
+        </div>
+        <h2>Pic to Text</h2>
+        <p>Upload an image to extract text and convert it instantly into a readable text file or spoken audio.</p>
+    </a>
+    <!-- Card 8: Web to Infographic -->
+    <a href="/web_inograf/" class="card">
+        <div class="card-icon">
+            <i class="fa-solid fa-globe"></i>
+        </div>
+        <h2>Web to Infographic</h2>
+        <p>Paste an article or website link, and our AI will scrape the content and convert it into a beautiful infographic and E-book.</p>
+    </a>
+    <!-- Card 9: Audio to E-Book -->
+    <a href="/audio_inograf/" class="card">
+        <div class="card-icon">
+            <i class="fa-solid fa-file-audio"></i>
+        </div>
+        <h2>Audio to E-Book</h2>
+        <p>Upload a podcast or audio file, and let our AI generate a complete e-book and infographic from the transcript.</p>
+    </a>
+    <!-- Card 10: AI Quiz & Flashcards -->
+    <a href="/ai_quiz/" class="card">
+        <div class="card-icon">
+            <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <h2>AI Quiz & Flashcards</h2>
+        <p>Upload a document and instantly generate interactive multiple-choice quizzes and flashcards to test your knowledge.</p>
+    </a>
+    <!-- Card 11: Chat with Document -->
+    <a href="/chat_doc/" class="card">
+        <div class="card-icon">
+            <i class="fa-regular fa-comments"></i>
+        </div>
+        <h2>Chat with Document</h2>
+        <p>Upload a PDF, Text, or Docx file and chat directly with it. Ask questions and get instant AI answers based solely on the document.</p>
+    </a>
+    <!-- Card 12: Data to Chart -->
+    <a href="/data_chart/" class="card">
+        <div class="card-icon">
+            <i class="fa-solid fa-chart-pie"></i>
+        </div>
+        <h2>Data to Chart</h2>
+        <p>Input raw statistics or text containing data, and our AI will automatically parse it and render beautiful, interactive charts.</p>
+    </a>
+</div>
+{% endblock %}

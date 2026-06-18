@@ -1,0 +1,441 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI Student Portal{% endblock %}</title>
+    
+    <!-- PWA Metadata -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta name="theme-color" content="#3b82f6">
+    <link rel="apple-touch-icon" href="{% static 'assets/img/icons/icon-192x192.png' %}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'assets/css/styles.css' %}">
+
+    <style>
+        /* ===== Navigation Menu ===== */
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .nav-link i {
+            font-size: 0.85rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Apps dropdown button */
+        .nav-apps-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            color: var(--text-muted);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--card-border);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .nav-apps-btn:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .nav-apps-btn i.chevron {
+            font-size: 0.7rem;
+            transition: transform 0.2s ease;
+        }
+        .nav-apps-btn.open i.chevron {
+            transform: rotate(180deg);
+        }
+
+        /* Dropdown panel */
+        .nav-dropdown {
+            position: absolute;
+            top: calc(100% + 12px);
+            right: 0;
+            width: 280px;
+            background: rgba(14, 18, 32, 0.98);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 0.5rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            display: none;
+            z-index: 200;
+            animation: dropdownFade 0.15s ease;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .nav-dropdown.open {
+            display: block;
+        }
+        @keyframes dropdownFade {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .dropdown-section-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            padding: 0.5rem 0.75rem 0.25rem;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.65rem 0.75rem;
+            border-radius: 9px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 500;
+            transition: all 0.15s ease;
+        }
+        .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.07);
+            color: var(--text-main);
+        }
+        .dropdown-item .di-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+        .dropdown-item .di-icon.purple { background: rgba(139,92,246,0.15); color: #a78bfa; }
+        .dropdown-item .di-icon.blue   { background: rgba(59,130,246,0.15); color: #60a5fa; }
+        .dropdown-item .di-icon.green  { background: rgba(16,185,129,0.15); color: #34d399; }
+        .dropdown-item .di-icon.red    { background: rgba(239,68,68,0.15);  color: #f87171; }
+        .dropdown-item .di-icon.orange { background: rgba(245,158,11,0.15); color: #fbbf24; }
+        .dropdown-item .di-icon.cyan   { background: rgba(6,182,212,0.15);  color: #22d3ee; }
+
+        .dropdown-divider {
+            height: 1px;
+            background: var(--card-border);
+            margin: 0.4rem 0.5rem;
+        }
+
+        /* Wrapper needed for absolute positioning */
+        .nav-apps-wrapper {
+            position: relative;
+        }
+
+        /* Hamburger for mobile */
+        .hamburger {
+            display: none;
+            background: none;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 0.5rem 0.7rem;
+            cursor: pointer;
+            color: var(--text-main);
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu { display: none; }
+            .hamburger { display: block; }
+        }
+    </style>
+</head>
+<body>
+    
+    <header>
+        <a href="/" class="logo">
+            <i class="fa-solid fa-brain"></i>
+            <span>AI Portal</span>
+        </a>
+
+        <nav class="nav-menu" id="mainNav">
+            <a href="/" class="nav-link"><i class="fa-solid fa-house"></i> Home</a>
+            <a href="/text_voice/" class="nav-link"><i class="fa-solid fa-microphone-lines"></i> Voice & Text</a>
+            <a href="/video_text/" class="nav-link"><i class="fa-solid fa-file-video"></i> Video & Text</a>
+            <a href="/text_inograf/" class="nav-link"><i class="fa-solid fa-image"></i> Text Infographic</a>
+            <a href="/video_inograf/" class="nav-link"><i class="fa-solid fa-photo-film"></i> Video Infographic</a>
+            <a href="/youtube_inograf/" class="nav-link"><i class="fa-brands fa-youtube"></i> YouTube Infographic</a>
+            <a href="/youtube_text/" class="nav-link"><i class="fa-solid fa-closed-captioning"></i> YouTube & Text</a>
+        </nav>
+
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <div class="nav-apps-wrapper">
+                <button class="nav-apps-btn" id="appsBtn" onclick="toggleAppsMenu()" aria-label="Apps menu">
+                    <i class="fa-solid fa-grip"></i> Applications <i class="fa-solid fa-chevron-down chevron"></i>
+                </button>
+            <div class="nav-dropdown" id="appsDropdown">
+                <div class="dropdown-section-label">AI Tools</div>
+                <a href="/text_voice/" class="dropdown-item">
+                    <div class="di-icon purple"><i class="fa-solid fa-microphone-lines"></i></div>
+                    <div>
+                        <div style="color: var(--text-main); font-weight: 600;">Voice & Text AI</div>
+                        <div style="font-size: 0.78rem;">Text ↔ Audio, Translation</div>
+                    </div>
+                </a>
+                <a href="/video_text/" class="dropdown-item">
+                    <div class="di-icon blue"><i class="fa-solid fa-file-video"></i></div>
+                    <div>
+                        <div style="color: var(--text-main); font-weight: 600;">Video to Text</div>
+                        <div style="font-size: 0.78rem;">Transcribe from video file</div>
+                    </div>
+                </a>
+                <div class="dropdown-divider"></div>
+                <a href="/text_inograf/" class="dropdown-item">
+                    <div class="di-icon green"><i class="fa-solid fa-image"></i></div>
+                    <div>
+                        <div style="color: var(--text-main); font-weight: 600;">Text → Infographic</div>
+                        <div style="font-size: 0.78rem;">Visual summary from document</div>
+                    </div>
+                </a>
+                <a href="/video_inograf/" class="dropdown-item">
+                    <div class="di-icon orange"><i class="fa-solid fa-photo-film"></i></div>
+                    <div>
+                        <div style="color: var(--text-main); font-weight: 600;">Video → Infographic</div>
+                        <div style="font-size: 0.78rem;">Summary visual from video</div>
+                    </div>
+                </a>
+                <div class="dropdown-divider"></div>
+                <a href="/youtube_inograf/" class="dropdown-item">
+                    <div class="di-icon red"><i class="fa-brands fa-youtube"></i></div>
+                    <div>
+                        <div style="color: var(--text-main); font-weight: 600;">YouTube → Infographic</div>
+                        <div style="font-size: 0.78rem;">Infographic from YouTube link</div>
+                    </div>
+                </a>
+                <a href="/youtube_text/" class="dropdown-item">
+                    <div class="di-icon cyan"><i class="fa-solid fa-closed-captioning"></i></div>
+                    <div>
+                        <div style="color: var(--text-main); font-weight: 600;">YouTube → Text</div>
+                        <div style="font-size: 0.78rem;">Transcript from YouTube link</div>
+                    </div>
+                </a>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-section-label" style="margin-top: 0.5rem;">New Tools</div>
+                <a href="/pic_text/" class="dropdown-item">
+                    <div class="di-icon purple"><i class="fa-solid fa-file-image"></i></div>
+                    <div>
+                        <div style="color: var(--text-main); font-weight: 600;">Image to Text</div>
+                        <div style="font-size: 0.78rem;">Extract text from images</div>
+                    </div>
+                </a>
+                <a href="/web_inograf/" class="dropdown-item">
+                    <div class="di-icon blue"><i class="fa-solid fa-globe"></i></div>
+                    <div>
+                        <div style="color: var(--text-main); font-weight: 600;">Web → Infographic</div>
+                        <div style="font-size: 0.78rem;">Summarize web pages</div>
+                    </div>
+                </a>
+                <a href="/audio_inograf/" class="dropdown-item">
+                    <div class="di-icon green"><i class="fa-solid fa-headphones"></i></div>
+                    <div>
+                        <div style="color: var(--text-main); font-weight: 600;">Audio → Infographic</div>
+                        <div style="font-size: 0.78rem;">Visual summary from audio</div>
+                    </div>
+                </a>
+                <div class="dropdown-divider"></div>
+                <a href="/ai_quiz/" class="dropdown-item">
+                    <div class="di-icon orange"><i class="fa-solid fa-graduation-cap"></i></div>
+                    <div>
+                        <div style="color: var(--text-main); font-weight: 600;">AI Quiz & Flashcards</div>
+                        <div style="font-size: 0.78rem;">Generate quizzes from text</div>
+                    </div>
+                </a>
+                <a href="/chat_doc/" class="dropdown-item">
+                    <div class="di-icon cyan"><i class="fa-solid fa-comments"></i></div>
+                    <div>
+                        <div style="color: var(--text-main); font-weight: 600;">Chat with Document</div>
+                        <div style="font-size: 0.78rem;">Interactive document Q&A</div>
+                    </div>
+                </a>
+                <a href="/data_chart/" class="dropdown-item">
+                    <div class="di-icon red"><i class="fa-solid fa-chart-pie"></i></div>
+                    <div>
+                        <div style="color: var(--text-main); font-weight: 600;">Data to Chart</div>
+                        <div style="font-size: 0.78rem;">Visualize data with AI</div>
+                    </div>
+                </a>
+            </div>
+            </div>
+
+            {% if user.is_authenticated %}
+            <div class="nav-apps-wrapper">
+                <button class="nav-apps-btn" id="userBtn" onclick="toggleUserMenu()" aria-label="User menu" style="background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.3); color: white;">
+                    <i class="fa-solid fa-user"></i> {{ user.username }} <i class="fa-solid fa-chevron-down chevron"></i>
+                </button>
+                <div class="nav-dropdown" id="userDropdown" style="width: 220px; right: 0;">
+                    <div style="padding: 1rem; border-bottom: 1px solid var(--card-border); text-align: center;">
+                        <div style="font-weight: 600; color: var(--text-main);">{{ user.username }}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">{{ user.userprofile.credits }} Credits Available</div>
+                        {% if user.userprofile.is_pro %}
+                        <div style="margin-top: 0.5rem; display: inline-block; padding: 0.2rem 0.5rem; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">PRO</div>
+                        {% else %}
+                        <div style="margin-top: 0.5rem; display: inline-block; padding: 0.2rem 0.5rem; background: rgba(255,255,255,0.1); color: var(--text-muted); border-radius: 4px; font-size: 0.7rem; font-weight: bold;">FREE PLAN</div>
+                        {% endif %}
+                    </div>
+                    <a href="/pricing/" class="dropdown-item">
+                        <div class="di-icon orange"><i class="fa-solid fa-bolt"></i></div>
+                        <div>
+                            <div style="color: var(--text-main); font-weight: 600;">Upgrade / Get Credits</div>
+                        </div>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="{% url 'accounts:logout' %}" class="dropdown-item">
+                        <div class="di-icon red"><i class="fa-solid fa-sign-out-alt"></i></div>
+                        <div>
+                            <div style="color: var(--text-main); font-weight: 600;">Log Out</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <div style="display: flex; gap: 0.5rem;">
+                <a href="{% url 'accounts:login' %}" style="padding: 0.5rem 1rem; color: var(--text-main); text-decoration: none; font-size: 0.9rem; font-weight: 500;">Login</a>
+                <a href="{% url 'accounts:register' %}" style="padding: 0.5rem 1rem; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; text-decoration: none; border-radius: 8px; font-size: 0.9rem; font-weight: 500; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Sign Up</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <button class="hamburger" onclick="toggleMobileNav()"><i class="fa-solid fa-bars"></i></button>
+    </header>
+
+    <main>
+        {% block content %}
+        {% endblock content %}
+    </main>
+
+    <footer>
+        <p>&copy; 2026 AI Student Portal. All rights reserved.</p>
+        <p style="margin-top: 0.5rem; color: #64748b; font-size: 0.85rem;">Kaşüstü, Park Evleri 1350 No’lu sokak, 61100 Yomra/Trabzon</p>
+    </footer>
+
+    <script>
+        function toggleAppsMenu() {
+            const btn = document.getElementById('appsBtn');
+            const dropdown = document.getElementById('appsDropdown');
+            btn.classList.toggle('open');
+            dropdown.classList.toggle('open');
+            
+            // Close other menu if open
+            const userDropdown = document.getElementById('userDropdown');
+            if (userDropdown && userDropdown.classList.contains('open')) {
+                toggleUserMenu();
+            }
+        }
+
+        function toggleUserMenu() {
+            const btn = document.getElementById('userBtn');
+            const dropdown = document.getElementById('userDropdown');
+            if (btn && dropdown) {
+                btn.classList.toggle('open');
+                dropdown.classList.toggle('open');
+                
+                // Close other menu if open
+                const appsDropdown = document.getElementById('appsDropdown');
+                if (appsDropdown.classList.contains('open')) {
+                    toggleAppsMenu();
+                }
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const wrappers = document.querySelectorAll('.nav-apps-wrapper');
+            let clickedInside = false;
+            wrappers.forEach(wrapper => {
+                if (wrapper.contains(e.target)) {
+                    clickedInside = true;
+                }
+            });
+            
+            if (!clickedInside) {
+                const appsBtn = document.getElementById('appsBtn');
+                if (appsBtn && appsBtn.classList.contains('open')) toggleAppsMenu();
+                
+                const userBtn = document.getElementById('userBtn');
+                if (userBtn && userBtn.classList.contains('open')) toggleUserMenu();
+            }
+        });
+
+        // Highlight active nav link
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.nav-link').forEach(link => {
+            if (link.getAttribute('href') === currentPath || 
+                (currentPath !== '/' && link.getAttribute('href') !== '/' && currentPath.startsWith(link.getAttribute('href')))) {
+                link.classList.add('active');
+            }
+        });
+
+        function toggleMobileNav() {
+            const nav = document.getElementById('mainNav');
+            nav.style.display = nav.style.display === 'flex' ? 'none' : 'flex';
+            nav.style.flexDirection = 'column';
+            nav.style.position = 'absolute';
+            nav.style.top = '70px';
+            nav.style.left = '0';
+            nav.style.right = '0';
+            nav.style.background = 'rgba(14, 18, 32, 0.98)';
+            nav.style.padding = '1rem';
+            nav.style.zIndex = '150';
+            nav.style.borderBottom = '1px solid var(--card-border)';
+        }
+    </script>
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

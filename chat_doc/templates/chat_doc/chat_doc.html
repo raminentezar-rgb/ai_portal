@@ -1,0 +1,330 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat with Document - AI Portal{% endblock %}
+
+{% block content %}
+<div class="hero" {% if success %}style="display:none;"{% endif %}>
+    <h1><i class="fa-regular fa-comments" style="color: #38bdf8;"></i> Chat with Document</h1>
+    <p>Upload a document and start an interactive conversation. The AI will answer your questions based entirely on the document's content.</p>
+</div>
+
+{% if error %}
+<div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #f87171; padding: 1rem; border-radius: 8px; margin-bottom: 2rem; max-width: 800px; width: 100%; text-align: center; margin-left: auto; margin-right: auto;">
+    {{ error }}
+</div>
+{% endif %}
+
+{% if not success %}
+<div class="grid" style="grid-template-columns: 1fr; max-width: 600px; margin: 0 auto;">
+    <div class="card" style="align-items: center; text-align: center;">
+        <div class="card-icon">
+            <i class="fa-solid fa-file-export"></i>
+        </div>
+        <h2>Select Document</h2>
+        <p>Provide the text you want to chat with.</p>
+        
+        <form id="upload-form" method="post" enctype="multipart/form-data" style="width: 100%; margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            {% csrf_token %}
+            
+            <div style="text-align: left;">
+                <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.9rem;">1. Paste Text</label>
+                <textarea id="text-input" name="source_text" rows="5" placeholder="Paste your document here..." style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); border-radius: 8px; color: var(--text-main); font-family: inherit; resize: vertical;"></textarea>
+            </div>
+            
+            <div style="text-align: center; color: #94a3b8; font-size: 0.9rem;">— OR —</div>
+
+            <div style="text-align: left;">
+                <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.9rem;">2. Upload Document (.txt, .pdf, .docx)</label>
+                <input type="file" id="file-input" name="document" accept=".txt,.pdf,.docx" style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); border-radius: 8px; color: var(--text-main);">
+            </div>
+
+            <button id="submit-btn" type="submit" style="padding: 1rem; background: linear-gradient(135deg, #0ea5e9, #3b82f6); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: transform 0.2s; font-size: 1.1rem; margin-top: 1rem;">
+                <i class="fa-solid fa-right-to-bracket"></i> Enter Chat Room
+            </button>
+        </form>
+    </div>
+</div>
+
+{% else %}
+
+<style>
+.chat-container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    height: 75vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.chat-header {
+    padding: 1.5rem;
+    background: rgba(15, 23, 42, 0.8);
+    border-bottom: 1px solid var(--card-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #f8fafc;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.message {
+    display: flex;
+    max-width: 80%;
+}
+
+.message.user {
+    align-self: flex-end;
+}
+
+.message.ai {
+    align-self: flex-start;
+}
+
+.msg-bubble {
+    padding: 1rem 1.2rem;
+    border-radius: 16px;
+    font-size: 1rem;
+    line-height: 1.5;
+    position: relative;
+    word-break: break-word;
+}
+
+.message.user .msg-bubble {
+    background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.message.ai .msg-bubble {
+    background: rgba(255,255,255,0.08);
+    color: #e2e8f0;
+    border: 1px solid var(--card-border);
+    border-bottom-left-radius: 4px;
+}
+
+.chat-input-area {
+    padding: 1.5rem;
+    background: rgba(15, 23, 42, 0.5);
+    border-top: 1px solid var(--card-border);
+    display: flex;
+    gap: 1rem;
+}
+
+.chat-input {
+    flex: 1;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    padding: 1rem 1.5rem;
+    color: white;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.chat-input:focus {
+    border-color: #38bdf8;
+}
+
+.chat-send-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #38bdf8;
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: transform 0.2s;
+}
+
+.chat-send-btn:hover {
+    transform: scale(1.05);
+}
+
+.chat-send-btn:disabled {
+    background: #64748b;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.typing-indicator {
+    display: flex;
+    gap: 5px;
+    padding: 1rem 1.5rem;
+    background: rgba(255,255,255,0.05);
+    border-radius: 16px;
+    border-bottom-left-radius: 4px;
+    align-self: flex-start;
+    align-items: center;
+    height: 40px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    background: #94a3b8;
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.dot:nth-child(1) { animation-delay: -0.32s; }
+.dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+}
+
+/* To render AI markdown */
+.msg-bubble p { margin-top: 0; margin-bottom: 0.5rem; }
+.msg-bubble p:last-child { margin-bottom: 0; }
+.msg-bubble pre { background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; overflow-x: auto; }
+</style>
+
+<div class="chat-container">
+    <div class="chat-header">
+        <h2><i class="fa-regular fa-comments" style="color: #38bdf8;"></i> AI Document Chat</h2>
+        <a href="/chat_doc/" style="color: #94a3b8; text-decoration: none; font-size: 0.9rem;"><i class="fa-solid fa-arrow-left"></i> Change Document</a>
+    </div>
+    
+    <div class="chat-messages" id="chat-messages">
+        <div class="message ai">
+            <div class="msg-bubble">
+                Hello! I have analyzed your document. What would you like to know about it?
+            </div>
+        </div>
+    </div>
+    
+    <form class="chat-input-area" id="chat-form">
+        <input type="text" class="chat-input" id="chat-input-field" placeholder="Ask a question about the document..." autocomplete="off" required>
+        <button type="submit" class="chat-send-btn" id="chat-send-btn">
+            <i class="fa-solid fa-paper-plane"></i>
+        </button>
+    </form>
+</div>
+
+<!-- Invisible script tag containing document context to avoid parsing issues -->
+<script type="application/json" id="doc-context">
+{{ document_context|safe }}
+</script>
+
+<script>
+    const documentContext = document.getElementById('doc-context').textContent;
+    const chatMessages = document.getElementById('chat-messages');
+    const chatForm = document.getElementById('chat-form');
+    const inputField = document.getElementById('chat-input-field');
+    const sendBtn = document.getElementById('chat-send-btn');
+    
+    let chatHistory = [];
+    
+    function addMessage(text, isUser) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${isUser ? 'user' : 'ai'}`;
+        
+        const bubble = document.createElement('div');
+        bubble.className = 'msg-bubble';
+        
+        // Simple line break to br conversion for user, we could use marked.js for AI but let's keep it simple
+        bubble.innerHTML = text.replace(/\n/g, '<br>');
+        
+        msgDiv.appendChild(bubble);
+        chatMessages.appendChild(msgDiv);
+        
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    function showTyping() {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'typing-indicator';
+        typingDiv.id = 'typing-indicator';
+        typingDiv.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+        chatMessages.appendChild(typingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    function removeTyping() {
+        const typingDiv = document.getElementById('typing-indicator');
+        if(typingDiv) {
+            typingDiv.remove();
+        }
+    }
+    
+    chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const text = inputField.value.trim();
+        if(!text) return;
+        
+        inputField.value = '';
+        inputField.disabled = true;
+        sendBtn.disabled = true;
+        
+        addMessage(text, true);
+        
+        showTyping();
+        
+        try {
+            const response = await fetch('/chat_doc/api/message/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    context: documentContext,
+                    history: chatHistory,
+                    message: text
+                })
+            });
+            
+            const data = await response.json();
+            
+            removeTyping();
+            
+            if(data.status === 'success') {
+                addMessage(data.reply, false);
+                
+                chatHistory.push({role: 'user', content: text});
+                chatHistory.push({role: 'assistant', content: data.reply});
+            } else {
+                addMessage('Sorry, an error occurred while generating the response: ' + data.message, false);
+            }
+            
+        } catch(err) {
+            removeTyping();
+            addMessage('A network error occurred.', false);
+        }
+        
+        inputField.disabled = false;
+        sendBtn.disabled = false;
+        inputField.focus();
+    });
+</script>
+
+{% endif %}
+{% endblock %}

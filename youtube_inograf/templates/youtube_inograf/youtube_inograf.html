@@ -1,0 +1,378 @@
+{% extends 'base.html' %}
+
+{% block title %}YouTube to Infographic - AI Portal{% endblock %}
+
+{% block content %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+
+<div class="hero">
+    <h1><i class="fa-brands fa-youtube" style="color: #ef4444;"></i> YouTube to Infographic</h1>
+    <p>Paste a YouTube link and our AI will digest the content to generate a comprehensive infographic.</p>
+</div>
+
+{% if error %}
+<div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #f87171; padding: 1rem; border-radius: 8px; margin-bottom: 2rem; max-width: 800px; width: 100%; text-align: center; margin-left: auto; margin-right: auto;">
+    {{ error }}
+</div>
+{% endif %}
+
+{% if not success %}
+<div class="grid" style="grid-template-columns: 1fr; max-width: 600px; margin: 0 auto;">
+    <div class="card" style="align-items: center; text-align: center;">
+        <div class="card-icon">
+            <i class="fa-solid fa-link"></i>
+        </div>
+        <h2>Process YouTube Video</h2>
+        <p>Enter any valid YouTube video URL.</p>
+        
+        <form id="upload-form" method="post" enctype="multipart/form-data" style="width: 100%; margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            {% csrf_token %}
+            
+            <div style="text-align: left;">
+                <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.9rem;">1. Select Video Language (Spoken Language)</label>
+                <select name="video_language" style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); border-radius: 8px; color: var(--text-main); font-size: 1rem;">
+                    <option value="en" style="color: #000; background: #fff;">🇬🇧 English</option>
+                    <option value="tr" style="color: #000; background: #fff;">🇹🇷 Türkçe</option>
+                    <option value="es" style="color: #000; background: #fff;">🇪🇸 Español</option>
+                    <option value="de" style="color: #000; background: #fff;">🇩🇪 Deutsch</option>
+                    <option value="fr" style="color: #000; background: #fff;">🇫🇷 Français</option>
+                    <option value="ru" style="color: #000; background: #fff;">🇷🇺 Русский</option>
+                    <option value="ar" style="color: #000; background: #fff;">🇸🇦 العربية</option>
+                    <option value="zh-CN" style="color: #000; background: #fff;">🇨🇳 中文</option>
+                    <option value="hi" style="color: #000; background: #fff;">🇮🇳 हिन्दी</option>
+                    <option value="ja" style="color: #000; background: #fff;">🇯🇵 日本語</option>
+                    <option value="it" style="color: #000; background: #fff;">🇮🇹 Italiano</option>
+                    <option value="fa" style="color: #000; background: #fff;">🇮🇷 فارسی</option>
+                    <option value="ko" style="color: #000; background: #fff;">🇰🇷 한국어</option>
+                    <option value="el" style="color: #000; background: #fff;">🇬🇷 Ελληνικά</option>
+                    <option value="pt" style="color: #000; background: #fff;">🇵🇹 Português</option>
+                    <option value="nl" style="color: #000; background: #fff;">🇳🇱 Nederlands</option>
+                    <option value="pl" style="color: #000; background: #fff;">🇵🇱 Polski</option>
+                    <option value="sv" style="color: #000; background: #fff;">🇸🇪 Svenska</option>
+                    <option value="id" style="color: #000; background: #fff;">🇮🇩 Bahasa Indonesia</option>
+                </select>
+            </div>
+
+            <div style="text-align: left;">
+                <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.9rem;">2. Select Output Language (Translation)</label>
+                <select name="output_language" style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); border-radius: 8px; color: var(--text-main); font-size: 1rem;">
+                    <option value="en" style="color: #000; background: #fff;">🇬🇧 English</option>
+                    <option value="tr" style="color: #000; background: #fff;">🇹🇷 Türkçe</option>
+                    <option value="es" style="color: #000; background: #fff;">🇪🇸 Español</option>
+                    <option value="de" style="color: #000; background: #fff;">🇩🇪 Deutsch</option>
+                    <option value="fr" style="color: #000; background: #fff;">🇫🇷 Français</option>
+                    <option value="ru" style="color: #000; background: #fff;">🇷🇺 Русский</option>
+                    <option value="ar" style="color: #000; background: #fff;">🇸🇦 العربية</option>
+                    <option value="zh-CN" style="color: #000; background: #fff;">🇨🇳 中文</option>
+                    <option value="hi" style="color: #000; background: #fff;">🇮🇳 हिन्दी</option>
+                    <option value="ja" style="color: #000; background: #fff;">🇯🇵 日本語</option>
+                    <option value="it" style="color: #000; background: #fff;">🇮🇹 Italiano</option>
+                    <option value="fa" style="color: #000; background: #fff;">🇮🇷 فارسی</option>
+                    <option value="ko" style="color: #000; background: #fff;">🇰🇷 한국어</option>
+                    <option value="el" style="color: #000; background: #fff;">🇬🇷 Ελληνικά</option>
+                    <option value="pt" style="color: #000; background: #fff;">🇵🇹 Português</option>
+                    <option value="nl" style="color: #000; background: #fff;">🇳🇱 Nederlands</option>
+                    <option value="pl" style="color: #000; background: #fff;">🇵🇱 Polski</option>
+                    <option value="sv" style="color: #000; background: #fff;">🇸🇪 Svenska</option>
+                    <option value="id" style="color: #000; background: #fff;">🇮🇩 Bahasa Indonesia</option>
+                </select>
+            </div>
+
+            <div style="text-align: left;">
+                <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.9rem;">3. Paste YouTube Link</label>
+                <input type="url" id="youtube-input" name="youtube_url" placeholder="https://www.youtube.com/watch?v=..." required style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); border-radius: 8px; color: var(--text-main);">
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button name="action" value="infographic" type="submit" class="submit-action-btn" style="flex: 1; padding: 1rem; background: linear-gradient(135deg, var(--primary), var(--secondary)); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: transform 0.2s; font-size: 1rem;">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Infographic
+                </button>
+                <button name="action" value="ebook" type="submit" class="submit-action-btn" style="flex: 1; padding: 1rem; background: linear-gradient(135deg, #8b5cf6, #d946ef); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: transform 0.2s; font-size: 1rem;">
+                    <i class="fa-solid fa-book-open"></i> Generate E-Book (PDF)
+                </button>
+            </div>
+            
+            <div id="progress-container" style="display: none; width: 100%; background: rgba(255,255,255,0.1); border-radius: 8px; height: 10px; overflow: hidden; margin-top: 0.5rem; position: relative;">
+                <div id="progress-bar" style="width: 0%; height: 100%; background: #3b82f6; transition: width 0.5s ease, background 0.3s ease;"></div>
+            </div>
+            <div id="progress-text" style="display: none; font-size: 0.85rem; color: #94a3b8; text-align: center;">Extracting audio & AI processing... (This may take a few minutes)</div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('upload-form').addEventListener('submit', function(e) {
+    if(!document.getElementById('youtube-input').value) return;
+    
+    const btns = document.querySelectorAll('.submit-action-btn');
+    btns.forEach(btn => {
+        btn.style.opacity = '0.5';
+    });
+    
+    const progressContainer = document.getElementById('progress-container');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    
+    progressContainer.style.display = 'block';
+    progressText.style.display = 'block';
+    
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += Math.random() * 2 + 0.5; // Slower progress for video processing
+        if (progress > 95) progress = 95;
+        progressBar.style.width = progress + '%';
+    }, 1000);
+    
+    window.addEventListener('pagehide', function() {
+        clearInterval(interval);
+        progressBar.style.width = '100%';
+        progressBar.style.background = '#10b981'; // Green
+        progressText.innerText = 'Completed!';
+        progressText.style.color = '#10b981';
+    });
+});
+</script>
+
+{% else %}
+
+{% if result_type == 'ebook' %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
+
+<div style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem;">
+    <button onclick="downloadPDF()" style="padding: 0.8rem 1.5rem; background: linear-gradient(135deg, #8b5cf6, #d946ef); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fa-solid fa-file-pdf"></i> Download PDF
+    </button>
+    <a href="/youtube_inograf/" style="padding: 0.8rem 1.5rem; background: rgba(255,255,255,0.1); border: 1px solid var(--card-border); border-radius: 8px; color: white; font-weight: 600; cursor: pointer; font-size: 1rem; text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fa-solid fa-plus"></i> Make Another
+    </a>
+</div>
+
+<div id="ebook-container" style="background: #ffffff; color: #1e293b; padding: 4rem; border-radius: 8px; max-width: 800px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.2); font-family: 'Inter', Tahoma, sans-serif; position: relative; direction: {{ text_dir|default:'ltr' }}; text-align: justify; line-height: 1.8;">
+    <div style="text-align: center; margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 2px solid #e2e8f0;">
+        <p style="color: #64748b; font-size: 1rem; margin-bottom: 0.5rem; direction: ltr;">Extracted from YouTube: <a href="{{ original_url }}" style="color: #3b82f6;"><strong>{{ original_url }}</strong></a></p>
+    </div>
+    
+    <div class="ebook-content" style="font-size: 1.1rem;">
+        {{ ebook_content|safe }}
+    </div>
+    
+    <div style="text-align: center; margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #e2e8f0;">
+        <p style="color: #94a3b8; font-size: 0.9rem; margin: 0;">Generated by AI Portal • Smart YouTube Analysis</p>
+    </div>
+</div>
+
+<style>
+.ebook-content h2 { font-size: 2.2rem; color: #0f172a; margin-top: 0; margin-bottom: 1.5rem; text-align: center; font-weight: 800; }
+.ebook-content h3 { font-size: 1.5rem; color: #334155; margin-top: 2.5rem; margin-bottom: 1rem; font-weight: 700; border-inline-start: 4px solid #8b5cf6; padding-inline-start: 10px; }
+.ebook-content p { margin-bottom: 1.5rem; color: #334155; }
+.ebook-content ul, .ebook-content ol { margin-bottom: 1.5rem; padding-inline-start: 2rem; }
+.ebook-content li { margin-bottom: 0.5rem; }
+.ebook-content strong { color: #0f172a; }
+</style>
+
+<script>
+function downloadPDF() {
+    const element = document.getElementById('ebook-container');
+    const opt = {
+        margin:       10,
+        filename:     'Educational_EBook.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
+}
+</script>
+
+{% else %}
+
+<div style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem;">
+    <button onclick="downloadInfographic()" style="padding: 0.8rem 1.5rem; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fa-solid fa-download"></i> Download as Image
+    </button>
+    <a href="/youtube_inograf/" style="padding: 0.8rem 1.5rem; background: rgba(255,255,255,0.1); border: 1px solid var(--card-border); border-radius: 8px; color: white; font-weight: 600; cursor: pointer; font-size: 1rem; text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fa-solid fa-plus"></i> Make Another
+    </a>
+</div>
+
+<!-- Infographic Render Area -->
+<div id="infographic-container" style="background: #ffffff; color: #1e293b; padding: 3rem 2rem; border-radius: 16px; max-width: 800px; margin: 0 auto; box-shadow: 0 20px 40px rgba(0,0,0,0.3); font-family: 'Inter', sans-serif; position: relative; overflow: hidden; direction: {{ text_dir|default:'ltr' }};">
+    
+    <!-- Decorative background elements -->
+    <div style="position: absolute; top: -100px; right: -100px; width: 300px; height: 300px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1)); border-radius: 50%; z-index: 0;"></div>
+    <div style="position: absolute; bottom: -50px; left: -50px; width: 200px; height: 200px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1)); border-radius: 50%; z-index: 0;"></div>
+
+    <div style="position: relative; z-index: 1;">
+        <div style="text-align: center; margin-bottom: 3rem;">
+            <div style="display: inline-block; padding: 0.5rem 1.5rem; background: #f1f5f9; color: #64748b; border-radius: 30px; font-weight: 600; font-size: 0.875rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px; direction: ltr;">Key Insights</div>
+            <h1 style="font-size: 2.5rem; font-weight: 800; color: #0f172a; margin: 0; line-height: 1.2; direction: ltr;">Educational Infographic</h1>
+            <p style="color: #64748b; font-size: 1.1rem; margin-top: 0.5rem; direction: ltr;">Extracted from YouTube: <a href="{{ original_url }}" style="color: #3b82f6;"><strong>{{ original_url }}</strong></a></p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+            {% for item in infographic_data %}
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; display: flex; gap: 1.5rem; align-items: flex-start; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: white; font-size: 1.25rem; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);">
+                    <i class="fa-solid {{ item.icon }}"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0 0 0.5rem 0; color: #0f172a; font-size: 1.1rem; font-weight: 700; line-height: 1.4;">{{ item.title }}</h3>
+                    <p style="margin: 0; color: #475569; font-size: 0.95rem; line-height: 1.6;">{{ item.text }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px dashed #cbd5e1;">
+            <p style="color: #94a3b8; font-size: 0.85rem; margin: 0;">Generated by AI Portal • Smart YouTube Analysis</p>
+        </div>
+    </div>
+</div>
+
+<script>
+function downloadInfographic() {
+    const container = document.getElementById('infographic-container');
+    html2canvas(container, {
+        scale: 2, 
+        backgroundColor: '#ffffff',
+        logging: false,
+        useCORS: true
+    }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'infographic.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    });
+}
+</script>
+
+{% endif %}
+{% endif %}
+
+<!-- Custom Select Styling (Loaded always) -->
+<style>
+.custom-select-wrapper {
+    position: relative;
+    user-select: none;
+    width: 100%;
+}
+.custom-select {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 0.8rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    color: var(--text-main);
+    cursor: pointer;
+    font-size: 1rem;
+}
+.custom-select img {
+    width: 24px;
+    margin-right: 10px;
+    border-radius: 2px;
+}
+.custom-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #1e1e2e;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    margin-top: 4px;
+    z-index: 10;
+    display: none;
+    max-height: 250px;
+    overflow-y: auto;
+}
+.custom-options.open {
+    display: block;
+}
+.custom-option {
+    display: flex;
+    align-items: center;
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 0.95rem;
+}
+.custom-option:hover {
+    background: rgba(255,255,255,0.1);
+}
+.custom-option img {
+    width: 24px;
+    margin-right: 10px;
+    border-radius: 2px;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const selects = document.querySelectorAll("select");
+    
+    selects.forEach(select => {
+        select.style.display = "none";
+        
+        const wrapper = document.createElement("div");
+        wrapper.className = "custom-select-wrapper";
+        select.parentNode.insertBefore(wrapper, select);
+        wrapper.appendChild(select);
+        
+        const customSelect = document.createElement("div");
+        customSelect.className = "custom-select";
+        
+        const customOptions = document.createElement("div");
+        customOptions.className = "custom-options";
+        
+        const getFlagCode = (val) => {
+            const map = {
+                'en': 'gb', 'ar': 'sa', 'zh-CN': 'cn', 'hi': 'in', 'ja': 'jp',
+                'fa': 'ir', 'ko': 'kr', 'el': 'gr', 'sv': 'se'
+            };
+            return map[val] || val;
+        };
+        
+        const updateSelected = (option) => {
+            const flagCode = getFlagCode(option.value);
+            const textContent = option.text.substring(option.text.indexOf(' ') + 1).trim();
+            customSelect.innerHTML = `<img src="https://flagcdn.com/w20/${flagCode}.png"> <span>${textContent}</span>`;
+        };
+        
+        Array.from(select.options).forEach(option => {
+            const optDiv = document.createElement("div");
+            optDiv.className = "custom-option";
+            const flagCode = getFlagCode(option.value);
+            const textContent = option.text.substring(option.text.indexOf(' ') + 1).trim();
+            optDiv.innerHTML = `<img src="https://flagcdn.com/w20/${flagCode}.png"> <span>${textContent}</span>`;
+            
+            optDiv.addEventListener("click", () => {
+                select.value = option.value;
+                updateSelected(option);
+                customOptions.classList.remove("open");
+            });
+            customOptions.appendChild(optDiv);
+        });
+        
+        updateSelected(select.options[select.selectedIndex]);
+        
+        customSelect.addEventListener("click", (e) => {
+            e.stopPropagation();
+            document.querySelectorAll(".custom-options").forEach(opt => {
+                if(opt !== customOptions) opt.classList.remove("open");
+            });
+            customOptions.classList.toggle("open");
+        });
+        
+        wrapper.appendChild(customSelect);
+        wrapper.appendChild(customOptions);
+    });
+    
+    document.addEventListener("click", () => {
+        document.querySelectorAll(".custom-options").forEach(opt => opt.classList.remove("open"));
+    });
+});
+</script>
+
+{% endblock %}

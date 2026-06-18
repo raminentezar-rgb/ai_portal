@@ -1,0 +1,28 @@
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+media
+
+# Media
+# We are currently keeping media and db.sqlite3 for the initial PythonAnywhere test
+# so they are commented out below:
+# media/
+# db.sqlite3
+
+# Virtual Environment
+Env/
+env/
+venv/
+.venv/
+
+# Environment variables
+.env
+
+# IDE
+.vscode/
+.idea/
+.gemini/

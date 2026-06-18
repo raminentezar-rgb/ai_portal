@@ -1,0 +1,355 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Quiz & Flashcards - AI Portal{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1><i class="fa-solid fa-graduation-cap" style="color: #ec4899;"></i> AI Quiz & Flashcards</h1>
+    <p>Upload a document or paste text to instantly generate interactive quizzes and test your knowledge.</p>
+</div>
+
+{% if error %}
+<div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #f87171; padding: 1rem; border-radius: 8px; margin-bottom: 2rem; max-width: 800px; width: 100%; text-align: center; margin-left: auto; margin-right: auto;">
+    {{ error }}
+</div>
+{% endif %}
+
+{% if not success %}
+<div class="grid" style="grid-template-columns: 1fr; max-width: 600px; margin: 0 auto;">
+    <div class="card" style="align-items: center; text-align: center;">
+        <div class="card-icon">
+            <i class="fa-solid fa-file-lines"></i>
+        </div>
+        <h2>Generate a Quiz</h2>
+        <p>Provide the study material below.</p>
+        
+        <form id="upload-form" method="post" enctype="multipart/form-data" style="width: 100%; margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            {% csrf_token %}
+            
+            <div style="text-align: left;">
+                <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.9rem;">1. Select Quiz Language</label>
+                <select name="quiz_language" style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); border-radius: 8px; color: var(--text-main); font-size: 1rem;">
+                    <option value="en" style="color: #000; background: #fff;">🇬🇧 English</option>
+                    <option value="tr" style="color: #000; background: #fff;">🇹🇷 Türkçe</option>
+                    <option value="es" style="color: #000; background: #fff;">🇪🇸 Español</option>
+                    <option value="de" style="color: #000; background: #fff;">🇩🇪 Deutsch</option>
+                    <option value="fr" style="color: #000; background: #fff;">🇫🇷 Français</option>
+                    <option value="ru" style="color: #000; background: #fff;">🇷🇺 Русский</option>
+                    <option value="ar" style="color: #000; background: #fff;">🇸🇦 العربية</option>
+                    <option value="zh-CN" style="color: #000; background: #fff;">🇨🇳 中文</option>
+                    <option value="hi" style="color: #000; background: #fff;">🇮🇳 हिन्दी</option>
+                    <option value="ja" style="color: #000; background: #fff;">🇯🇵 日本語</option>
+                    <option value="it" style="color: #000; background: #fff;">🇮🇹 Italiano</option>
+                    <option value="fa" style="color: #000; background: #fff;">🇮🇷 فارسی</option>
+                    <option value="ko" style="color: #000; background: #fff;">🇰🇷 한국어</option>
+                    <option value="el" style="color: #000; background: #fff;">🇬🇷 Ελληνικά</option>
+                    <option value="pt" style="color: #000; background: #fff;">🇵🇹 Português</option>
+                    <option value="nl" style="color: #000; background: #fff;">🇳🇱 Nederlands</option>
+                    <option value="pl" style="color: #000; background: #fff;">🇵🇱 Polski</option>
+                    <option value="sv" style="color: #000; background: #fff;">🇸🇪 Svenska</option>
+                    <option value="id" style="color: #000; background: #fff;">🇮🇩 Bahasa Indonesia</option>
+                </select>
+            </div>
+
+            <div style="text-align: left;">
+                <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.9rem;">2. Paste Text</label>
+                <textarea id="text-input" name="source_text" rows="5" placeholder="Paste your study notes here..." style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); border-radius: 8px; color: var(--text-main); font-family: inherit; resize: vertical;"></textarea>
+            </div>
+            
+            <div style="text-align: center; color: #94a3b8; font-size: 0.9rem;">— OR —</div>
+
+            <div style="text-align: left;">
+                <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.9rem;">3. Upload Document (.txt, .pdf, .docx)</label>
+                <input type="file" id="file-input" name="document" accept=".txt,.pdf,.docx" style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); border-radius: 8px; color: var(--text-main);">
+            </div>
+
+            <button id="submit-btn" type="submit" style="padding: 1rem; background: linear-gradient(135deg, #ec4899, #8b5cf6); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: transform 0.2s; font-size: 1.1rem; margin-top: 1rem;">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Generate AI Quiz
+            </button>
+            
+            <div id="progress-container" style="display: none; width: 100%; background: rgba(255,255,255,0.1); border-radius: 8px; height: 10px; overflow: hidden; margin-top: 0.5rem; position: relative;">
+                <div id="progress-bar" style="width: 0%; height: 100%; background: #ec4899; transition: width 0.5s ease, background 0.3s ease;"></div>
+            </div>
+            <div id="progress-text" style="display: none; font-size: 0.85rem; color: #94a3b8; text-align: center;">Analyzing content and generating questions...</div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('upload-form').addEventListener('submit', function(e) {
+    const textInput = document.getElementById('text-input').value.trim();
+    const fileInput = document.getElementById('file-input').value;
+    
+    if(!textInput && !fileInput) {
+        e.preventDefault();
+        alert("Please paste text or upload a document.");
+        return;
+    }
+    
+    const submitBtn = document.getElementById('submit-btn');
+    const progressContainer = document.getElementById('progress-container');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Generating...';
+    submitBtn.style.opacity = '0.7';
+    
+    progressContainer.style.display = 'block';
+    progressText.style.display = 'block';
+    
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += Math.random() * 5 + 2; 
+        if (progress > 95) progress = 95;
+        progressBar.style.width = progress + '%';
+    }, 1000);
+    
+    window.addEventListener('pagehide', function() {
+        clearInterval(interval);
+    });
+});
+</script>
+
+{% else %}
+
+<div style="max-width: 800px; margin: 0 auto; direction: {{ text_dir|default:'ltr' }};">
+    <div class="card" style="padding: 3rem; position: relative; overflow: hidden;">
+        <!-- Background Decoration -->
+        <div style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(139, 92, 246, 0.1)); border-radius: 50%; z-index: 0;"></div>
+        
+        <div style="position: relative; z-index: 1;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h1 id="quiz-title" style="font-size: 2rem; color: #f8fafc; margin-bottom: 0.5rem;">{{ quiz_data.quiz_title }}</h1>
+                <p id="quiz-progress-text" style="color: #94a3b8; font-weight: 600;">Question 1 of {{ quiz_data.questions|length }}</p>
+                <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-top: 1rem; overflow: hidden;">
+                    <div id="quiz-progress-bar" style="width: 0%; height: 100%; background: #ec4899; transition: width 0.3s ease;"></div>
+                </div>
+            </div>
+            
+            <div id="quiz-container">
+                <!-- Questions injected via JS -->
+            </div>
+            
+            <div id="result-container" style="display: none; text-align: center; padding: 2rem 0;">
+                <i class="fa-solid fa-trophy" style="font-size: 4rem; color: #fbbf24; margin-bottom: 1rem;"></i>
+                <h2 style="font-size: 2.5rem; color: #f8fafc; margin-bottom: 0.5rem;">Quiz Completed!</h2>
+                <p style="font-size: 1.2rem; color: #cbd5e1; margin-bottom: 2rem;">Your Score: <strong id="final-score" style="color: #10b981; font-size: 1.5rem;">0</strong> / <span id="total-questions">0</span></p>
+                
+                <a href="/ai_quiz/" style="display: inline-block; padding: 1rem 2rem; background: linear-gradient(135deg, #ec4899, #8b5cf6); border-radius: 8px; color: white; font-weight: 600; text-decoration: none; font-size: 1.1rem; transition: transform 0.2s;">
+                    <i class="fa-solid fa-rotate-right"></i> Try Another Document
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Load quiz data from Django safely
+    const quizData = JSON.parse('{{ quiz_json_string|escapejs }}');
+    const questions = quizData.questions;
+    
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let hasAnswered = false;
+    
+    const quizContainer = document.getElementById('quiz-container');
+    const resultContainer = document.getElementById('result-container');
+    const progressBar = document.getElementById('quiz-progress-bar');
+    const progressText = document.getElementById('quiz-progress-text');
+    
+    function renderQuestion() {
+        hasAnswered = false;
+        const q = questions[currentQuestionIndex];
+        
+        // Update progress
+        const percent = ((currentQuestionIndex) / questions.length) * 100;
+        progressBar.style.width = percent + '%';
+        progressText.innerText = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+        
+        let optionsHtml = '';
+        q.options.forEach((opt, idx) => {
+            optionsHtml += `
+                <div class="quiz-option" onclick="selectAnswer(${idx})" id="option-${idx}" style="padding: 1.2rem; margin-bottom: 1rem; background: rgba(255,255,255,0.05); border: 2px solid var(--card-border); border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 1.1rem; color: #e2e8f0; display: flex; align-items: center;">
+                    <div style="width: 30px; height: 30px; border-radius: 50%; border: 2px solid #64748b; margin-right: 15px; margin-left: 15px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem;" class="opt-circle"></div>
+                    <div>${opt}</div>
+                </div>
+            `;
+        });
+        
+        quizContainer.innerHTML = `
+            <div class="question-block" style="animation: fadeIn 0.5s;">
+                <h3 style="font-size: 1.4rem; color: #f8fafc; margin-bottom: 2rem; line-height: 1.5;">${q.question}</h3>
+                ${optionsHtml}
+                
+                <div id="explanation-box" style="display: none; margin-top: 2rem; padding: 1.5rem; border-radius: 8px; background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6;">
+                    <h4 style="color: #60a5fa; margin-bottom: 0.5rem; font-size: 1.1rem;"><i class="fa-solid fa-lightbulb"></i> Explanation</h4>
+                    <p style="color: #cbd5e1; font-size: 1rem; line-height: 1.6;">${q.explanation}</p>
+                </div>
+                
+                <div style="text-align: right; margin-top: 2rem;">
+                    <button id="next-btn" onclick="nextQuestion()" style="display: none; padding: 1rem 2rem; background: var(--primary); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; font-size: 1.1rem;">
+                        Next Question <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
+    window.selectAnswer = function(selectedIndex) {
+        if(hasAnswered) return;
+        hasAnswered = true;
+        
+        const q = questions[currentQuestionIndex];
+        const correctIndex = q.correct_answer_index;
+        
+        const allOptions = document.querySelectorAll('.quiz-option');
+        
+        // Highlight logic
+        if(selectedIndex === correctIndex) {
+            score++;
+            document.getElementById(`option-${selectedIndex}`).style.background = 'rgba(16, 185, 129, 0.15)';
+            document.getElementById(`option-${selectedIndex}`).style.borderColor = '#10b981';
+            document.getElementById(`option-${selectedIndex}`).querySelector('.opt-circle').innerHTML = '<i class="fa-solid fa-check" style="color: #10b981;"></i>';
+            document.getElementById(`option-${selectedIndex}`).querySelector('.opt-circle').style.borderColor = '#10b981';
+        } else {
+            document.getElementById(`option-${selectedIndex}`).style.background = 'rgba(239, 68, 68, 0.15)';
+            document.getElementById(`option-${selectedIndex}`).style.borderColor = '#ef4444';
+            document.getElementById(`option-${selectedIndex}`).querySelector('.opt-circle').innerHTML = '<i class="fa-solid fa-xmark" style="color: #ef4444;"></i>';
+            document.getElementById(`option-${selectedIndex}`).querySelector('.opt-circle').style.borderColor = '#ef4444';
+            
+            // Highlight correct one too
+            document.getElementById(`option-${correctIndex}`).style.borderColor = '#10b981';
+            document.getElementById(`option-${correctIndex}`).querySelector('.opt-circle').innerHTML = '<i class="fa-solid fa-check" style="color: #10b981;"></i>';
+            document.getElementById(`option-${correctIndex}`).querySelector('.opt-circle').style.borderColor = '#10b981';
+        }
+        
+        allOptions.forEach(opt => opt.style.cursor = 'default');
+        
+        document.getElementById('explanation-box').style.display = 'block';
+        
+        const nextBtn = document.getElementById('next-btn');
+        nextBtn.style.display = 'inline-block';
+        if(currentQuestionIndex === questions.length - 1) {
+            nextBtn.innerHTML = 'See Results <i class="fa-solid fa-flag-checkered"></i>';
+        }
+    };
+    
+    window.nextQuestion = function() {
+        currentQuestionIndex++;
+        if(currentQuestionIndex >= questions.length) {
+            showResults();
+        } else {
+            renderQuestion();
+        }
+    };
+    
+    function showResults() {
+        progressBar.style.width = '100%';
+        progressText.innerText = 'Quiz Completed';
+        quizContainer.style.display = 'none';
+        
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('total-questions').innerText = questions.length;
+        
+        resultContainer.style.display = 'block';
+        resultContainer.style.animation = 'fadeIn 0.5s';
+    }
+    
+    // Start Quiz
+    if(questions && questions.length > 0) {
+        renderQuestion();
+    }
+</script>
+
+<style>
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.quiz-option:hover {
+    background: rgba(255,255,255,0.08) !important;
+}
+</style>
+
+{% endif %}
+
+<!-- Re-use the nice custom select from before -->
+<style>
+.custom-select-wrapper { position: relative; user-select: none; width: 100%; }
+.custom-select { position: relative; display: flex; align-items: center; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); border-radius: 8px; color: var(--text-main); cursor: pointer; font-size: 1rem; }
+.custom-select img { width: 24px; margin-right: 10px; border-radius: 2px; }
+.custom-options { position: absolute; top: 100%; left: 0; right: 0; background: #1e1e2e; border: 1px solid var(--card-border); border-radius: 8px; margin-top: 4px; z-index: 10; display: none; max-height: 250px; overflow-y: auto; }
+.custom-options.open { display: block; }
+.custom-option { display: flex; align-items: center; padding: 0.6rem 1rem; cursor: pointer; transition: background 0.2s; font-size: 0.95rem; }
+.custom-option:hover { background: rgba(255,255,255,0.1); }
+.custom-option img { width: 24px; margin-right: 10px; border-radius: 2px; }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const selects = document.querySelectorAll("select");
+    selects.forEach(select => {
+        select.style.display = "none";
+        const wrapper = document.createElement("div");
+        wrapper.className = "custom-select-wrapper";
+        select.parentNode.insertBefore(wrapper, select);
+        wrapper.appendChild(select);
+        
+        const customSelect = document.createElement("div");
+        customSelect.className = "custom-select";
+        
+        const customOptions = document.createElement("div");
+        customOptions.className = "custom-options";
+        
+        const getFlagCode = (val) => {
+            const map = {
+                'en': 'gb', 'ar': 'sa', 'zh-CN': 'cn', 'hi': 'in', 'ja': 'jp',
+                'fa': 'ir', 'ko': 'kr', 'el': 'gr', 'sv': 'se'
+            };
+            return map[val] || val;
+        };
+        
+        const updateSelected = (option) => {
+            if(!option) return;
+            const flagCode = getFlagCode(option.value);
+            const textContent = option.text.substring(option.text.indexOf(' ') + 1).trim();
+            customSelect.innerHTML = `<img src="https://flagcdn.com/w20/${flagCode}.png"> <span>${textContent}</span>`;
+        };
+        
+        Array.from(select.options).forEach(option => {
+            const optDiv = document.createElement("div");
+            optDiv.className = "custom-option";
+            const flagCode = getFlagCode(option.value);
+            const textContent = option.text.substring(option.text.indexOf(' ') + 1).trim();
+            optDiv.innerHTML = `<img src="https://flagcdn.com/w20/${flagCode}.png"> <span>${textContent}</span>`;
+            
+            optDiv.addEventListener("click", () => {
+                select.value = option.value;
+                updateSelected(option);
+                customOptions.classList.remove("open");
+            });
+            customOptions.appendChild(optDiv);
+        });
+        
+        updateSelected(select.options[select.selectedIndex]);
+        
+        customSelect.addEventListener("click", (e) => {
+            e.stopPropagation();
+            document.querySelectorAll(".custom-options").forEach(opt => {
+                if(opt !== customOptions) opt.classList.remove("open");
+            });
+            customOptions.classList.toggle("open");
+        });
+        
+        wrapper.appendChild(customSelect);
+        wrapper.appendChild(customOptions);
+    });
+    
+    document.addEventListener("click", () => {
+        document.querySelectorAll(".custom-options").forEach(opt => opt.classList.remove("open"));
+    });
+});
+</script>
+
+{% endblock %}
