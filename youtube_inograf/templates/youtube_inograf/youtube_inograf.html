@@ -168,19 +168,37 @@ document.getElementById('upload-form').addEventListener('submit', function(e) {
 .ebook-content ul, .ebook-content ol { margin-bottom: 1.5rem; padding-inline-start: 2rem; }
 .ebook-content li { margin-bottom: 0.5rem; }
 .ebook-content strong { color: #0f172a; }
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #ebook-container, #ebook-container * {
+        visibility: visible;
+    }
+    #ebook-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0 !important;
+        box-shadow: none !important;
+        color: #000 !important;
+    }
+    .ebook-content h2, .ebook-content h3, .ebook-content p, .ebook-content li, .ebook-content strong {
+        color: #000 !important;
+    }
+    button, a.btn {
+        display: none !important;
+    }
+}
 </style>
 
 <script>
 function downloadPDF() {
-    const element = document.getElementById('ebook-container');
-    const opt = {
-        margin:       10,
-        filename:     'Educational_EBook.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-    html2pdf().set(opt).from(element).save();
+    window.print();
 }
 </script>
 
