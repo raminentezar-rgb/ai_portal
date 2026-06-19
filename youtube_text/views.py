@@ -24,6 +24,7 @@ def is_valid_youtube_url(url):
     match = re.match(youtube_regex, url)
     return bool(match)
 
+@check_credits
 def youtube_to_text(request):
     if request.method == 'POST':
         youtube_url = request.POST.get('youtube_url', '').strip()
@@ -136,16 +137,12 @@ def youtube_to_text(request):
             return render(request, 'youtube_text/youtube_text.html', {'error': f'Error processing video: {str(e)}'})
             
         finally:
-            # Cleanup main temporary files
-            if os.path.exists(temp_download_path):
+            # Cleanup all temporary files related to this session
+            import glob
+            for f in glob.glob(os.path.join(settings.BASE_DIR, f'temp_*{session_id}*')):
                 try:
-                    os.remove(temp_download_path)
-                except:
-                    pass
-            if os.path.exists(temp_audio_path):
-                try:
-                    os.remove(temp_audio_path)
-                except:
+                    os.remove(f)
+                except Exception:
                     pass
                 
     return render(request, 'youtube_text/youtube_text.html')

@@ -56,10 +56,13 @@ Text:
         
         for attempt in range(3):
             try:
-                response = g4f.ChatCompletion.create(
-                    model=g4f.models.default,
-                    messages=[{"role": "user", "content": prompt}]
-                )
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                    future = executor.submit(g4f.ChatCompletion.create,
+                        model=g4f.models.default,
+                        messages=[{"role": "user", "content": prompt}]
+                    )
+                    response = future.result(timeout=25)
                 
                 response_text = str(response).strip()
                 if response_text.startswith('```json'):
@@ -191,10 +194,13 @@ Text:
         
         for attempt in range(3):
             try:
-                response = g4f.ChatCompletion.create(
-                    model=g4f.models.default,
-                    messages=[{"role": "user", "content": prompt}]
-                )
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                    future = executor.submit(g4f.ChatCompletion.create,
+                        model=g4f.models.default,
+                        messages=[{"role": "user", "content": prompt}]
+                    )
+                    response = future.result(timeout=45)
                 
                 response_text = str(response).strip()
                 if response_text.startswith('```html'):
@@ -227,17 +233,34 @@ Text:
     if not sentences:
         return "<h2>E-Book Generation Failed</h2><p>The uploaded video was too short or its audio could not be analyzed.</p>"
         
-    html = f"<h2>Educational E-Book</h2>"
-    html += "<h3>Introduction</h3>"
+    title_str = "Educational E-Book"
+    intro_str = "Introduction"
+    main_str = "Main Content"
+    conc_str = "Conclusion"
+    
+    try:
+        from deep_translator import GoogleTranslator
+        translator = GoogleTranslator(source='auto', target=output_lang)
+        title_str = translator.translate(title_str)
+        intro_str = translator.translate(intro_str)
+        main_str = translator.translate(main_str)
+        conc_str = translator.translate(conc_str)
+        
+        sentences = [translator.translate(s) for s in sentences[:10]]
+    except Exception as e:
+        print("Fallback E-Book translation failed:", e)
+
+    html = f"<h2>{title_str}</h2>"
+    html += f"<h3>{intro_str}</h3>"
     html += f"<p>{sentences[0]}</p>"
     
-    html += "<h3>Main Content</h3><p>"
+    html += f"<h3>{main_str}</h3><p>"
     for s in sentences[1:-1]:
         html += f"{s}. "
     html += "</p>"
     
     if len(sentences) > 1:
-        html += "<h3>Conclusion</h3>"
+        html += f"<h3>{conc_str}</h3>"
         html += f"<p>{sentences[-1]}</p>"
         
     return html
@@ -250,6 +273,7 @@ def is_valid_youtube_url(url):
     match = re.match(youtube_regex, url)
     return bool(match)
 
+@check_credits
 def youtube_to_image(request):
     if request.method == 'POST':
         youtube_url = request.POST.get('youtube_url', '').strip()

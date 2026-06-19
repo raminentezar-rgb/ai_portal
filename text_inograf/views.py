@@ -242,17 +242,34 @@ Text:
     if not sentences:
         return "<h2>E-Book Generation Failed</h2><p>The uploaded text was too short or could not be analyzed.</p>"
         
-    html = f"<h2>Educational E-Book</h2>"
-    html += "<h3>Introduction</h3>"
+    title_str = "Educational E-Book"
+    intro_str = "Introduction"
+    main_str = "Main Content"
+    conc_str = "Conclusion"
+    
+    try:
+        from deep_translator import GoogleTranslator
+        translator = GoogleTranslator(source='auto', target=output_lang)
+        title_str = translator.translate(title_str)
+        intro_str = translator.translate(intro_str)
+        main_str = translator.translate(main_str)
+        conc_str = translator.translate(conc_str)
+        
+        sentences = [translator.translate(s) for s in sentences[:10]]
+    except Exception as e:
+        print("Fallback E-Book translation failed:", e)
+
+    html = f"<h2>{title_str}</h2>"
+    html += f"<h3>{intro_str}</h3>"
     html += f"<p>{sentences[0]}</p>"
     
-    html += "<h3>Main Content</h3><p>"
+    html += f"<h3>{main_str}</h3><p>"
     for s in sentences[1:-1]:
         html += f"{s}. "
     html += "</p>"
     
     if len(sentences) > 1:
-        html += "<h3>Conclusion</h3>"
+        html += f"<h3>{conc_str}</h3>"
         html += f"<p>{sentences[-1]}</p>"
         
     return html

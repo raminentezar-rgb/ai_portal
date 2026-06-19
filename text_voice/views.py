@@ -24,6 +24,7 @@ def extract_text_from_file(uploaded_file):
             text += para.text + "\n"
     return text
 
+@check_credits
 def text_to_voice(request):
     if request.method == 'POST':
         action = request.POST.get('action')

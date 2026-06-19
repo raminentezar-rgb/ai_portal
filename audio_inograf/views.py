@@ -126,10 +126,13 @@ Audio Transcript to analyze:
             result_data = None
             for attempt in range(3):
                 try:
-                    response = g4f.ChatCompletion.create(
-                        model=g4f.models.default,
-                        messages=[{"role": "user", "content": prompt}]
-                    )
+                    import concurrent.futures
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                        future = executor.submit(g4f.ChatCompletion.create,
+                            model=g4f.models.default,
+                            messages=[{"role": "user", "content": prompt}]
+                        )
+                        response = future.result(timeout=45)
                     
                     result_data = parse_inograf_json(str(response))
                     if result_data:
@@ -181,12 +184,12 @@ Audio Transcript to analyze:
             return render(request, 'audio_inograf/audio_inograf.html', {'error': str(e)})
             
         finally:
-            # Cleanup main temp files
-            for p in [temp_audio_path, temp_wav_path]:
-                if os.path.exists(p):
-                    try:
-                        os.remove(p)
-                    except:
-                        pass
+            # Cleanup all temporary files related to this session
+            import glob
+            for f in glob.glob(os.path.join(settings.BASE_DIR, f'temp_*{session_id}*')):
+                try:
+                    os.remove(f)
+                except Exception:
+                    pass
                         
     return render(request, 'audio_inograf/audio_inograf.html')

@@ -14,6 +14,7 @@ from pydub.utils import make_chunks
 import speech_recognition as sr
 import concurrent.futures
 from g4f.client import Client
+import g4f
 from collections import Counter
 
 STOP_WORDS = set([
@@ -239,21 +240,40 @@ Text:
     if not sentences:
         return "<h2>E-Book Generation Failed</h2><p>The uploaded video was too short or its audio could not be analyzed.</p>"
         
-    html = f"<h2>Educational E-Book</h2>"
-    html += "<h3>Introduction</h3>"
+    title_str = "Educational E-Book"
+    intro_str = "Introduction"
+    main_str = "Main Content"
+    conc_str = "Conclusion"
+    
+    try:
+        from deep_translator import GoogleTranslator
+        translator = GoogleTranslator(source='auto', target=output_lang)
+        title_str = translator.translate(title_str)
+        intro_str = translator.translate(intro_str)
+        main_str = translator.translate(main_str)
+        conc_str = translator.translate(conc_str)
+        
+        # Translate sentences but limit to first 10 to avoid too long requests
+        sentences = [translator.translate(s) for s in sentences[:10]]
+    except Exception as e:
+        print("Fallback E-Book translation failed:", e)
+
+    html = f"<h2>{title_str}</h2>"
+    html += f"<h3>{intro_str}</h3>"
     html += f"<p>{sentences[0]}</p>"
     
-    html += "<h3>Main Content</h3><p>"
+    html += f"<h3>{main_str}</h3><p>"
     for s in sentences[1:-1]:
         html += f"{s}. "
     html += "</p>"
     
     if len(sentences) > 1:
-        html += "<h3>Conclusion</h3>"
+        html += f"<h3>{conc_str}</h3>"
         html += f"<p>{sentences[-1]}</p>"
         
     return html
 
+@check_credits
 def video_to_inograf(request):
     if request.method == 'POST' and request.FILES.get('video_file'):
         video_file = request.FILES['video_file']
@@ -350,10 +370,12 @@ def video_to_inograf(request):
             return render(request, 'video_inograf/video_inograf.html', {'error': str(e)})
             
         finally:
-            # Cleanup main temporary files
-            if os.path.exists(temp_video_path):
-                os.remove(temp_video_path)
-            if os.path.exists(temp_audio_path):
-                os.remove(temp_audio_path)
+            # Cleanup all temporary files related to this session
+            import glob
+            for f in glob.glob(os.path.join(settings.BASE_DIR, f'temp_*{session_id}*')):
+                try:
+                    os.remove(f)
+                except Exception:
+                    pass
                 
     return render(request, 'video_inograf/video_inograf.html')

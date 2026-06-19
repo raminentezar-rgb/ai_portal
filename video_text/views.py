@@ -14,6 +14,7 @@ import concurrent.futures
 import g4f
 from gtts import gTTS
 
+@check_credits
 def video_to_text(request):
     if request.method == 'POST':
         if 'video_file' not in request.FILES:
@@ -88,10 +89,13 @@ def video_to_text(request):
                 prompt = f"Translate the following text to the language code '{output_language}'. Return only the translated text, no other comments:\n\n{final_text[:15000]}"
                 for attempt in range(2):
                     try:
-                        response = g4f.ChatCompletion.create(
-                            model=g4f.models.default,
-                            messages=[{"role": "user", "content": prompt}]
-                        )
+                        import concurrent.futures
+                        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                            future = executor.submit(g4f.ChatCompletion.create,
+                                model=g4f.models.default,
+                                messages=[{"role": "user", "content": prompt}]
+                            )
+                            response = future.result(timeout=25)
                         translated_text = str(response).strip()
                         if translated_text.startswith('```'):
                             translated_text = translated_text.split('\n', 1)[-1]
@@ -150,10 +154,11 @@ def video_to_text(request):
             return render(request, 'video_text/video_text.html', {'error': str(e)})
             
         finally:
-            # Cleanup main temporary files
-            if os.path.exists(temp_video_path):
-                os.remove(temp_video_path)
-            if os.path.exists(temp_audio_path):
-                os.remove(temp_audio_path)
-                
+            # Cleanup all temporary files related to this session
+            import glob
+            for f in glob.glob(os.path.join(settings.BASE_DIR, f'temp_*{session_id}*')):
+                try:
+                    os.remove(f)
+                except Exception:
+                    pass
     return render(request, 'video_text/video_text.html')
