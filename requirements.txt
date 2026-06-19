@@ -1,9 +1,5 @@
-django>=4.2
-django-allauth>=65.18.0
 g4f
 gTTS
-moviepy
-SpeechRecognition
 deep-translator
 PyPDF2
 python-docx
