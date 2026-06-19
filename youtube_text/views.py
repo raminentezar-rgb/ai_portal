@@ -3,7 +3,10 @@ import os
 import uuid
 from django.shortcuts import render
 from django.conf import settings
-from moviepy.editor import AudioFileClip
+try:
+    from moviepy.editor import AudioFileClip
+except ImportError:
+    from moviepy import AudioFileClip
 from pydub import AudioSegment
 from pydub.utils import make_chunks
 import speech_recognition as sr
