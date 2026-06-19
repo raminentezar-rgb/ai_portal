@@ -313,7 +313,11 @@
                 <div class="nav-dropdown" id="userDropdown" style="width: 220px; right: 0;">
                     <div style="padding: 1rem; border-bottom: 1px solid var(--card-border); text-align: center;">
                         <div style="font-weight: 600; color: var(--text-main);">{{ user.username }}</div>
+                        {% if user.is_superuser or user.is_staff %}
+                        <div style="font-size: 0.8rem; color: var(--primary); margin-top: 0.25rem; font-weight: 600;">Unlimited Credits (Admin)</div>
+                        {% else %}
                         <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">{{ user.userprofile.credits }} Credits Available</div>
+                        {% endif %}
                         {% if user.userprofile.is_pro %}
                         <div style="margin-top: 0.5rem; display: inline-block; padding: 0.2rem 0.5rem; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">PRO</div>
                         {% else %}

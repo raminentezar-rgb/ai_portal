@@ -10,14 +10,18 @@ def check_credits(view_func):
             return redirect('accounts:login')
             
         if request.method == 'POST':
-            if not request.user.userprofile.is_pro and request.user.userprofile.credits <= 0:
-                messages.warning(request, "You have run out of credits. Please upgrade your plan or buy more credits.")
-                return redirect('pricing')
+            if not request.user.is_superuser and not request.user.is_staff:
+                if not request.user.userprofile.is_pro and request.user.userprofile.credits <= 0:
+                    messages.warning(request, "You have run out of credits. Please upgrade your plan or buy more credits.")
+                    return redirect('pricing')
                 
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 
 def deduct_credit(user):
+    if user.is_superuser or user.is_staff:
+        return
+        
     if not user.userprofile.is_pro and user.userprofile.credits > 0:
         user.userprofile.credits -= 1
         user.userprofile.save()
