@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-97ii)rx$02&0#2afrp_!(z@e*g*d%m-z5goujcq1w+&va%(dic
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['aiportal.pythonanywhere.com', '127.0.0.1', 'localhost']
 
 
 # Application definition
