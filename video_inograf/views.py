@@ -5,7 +5,7 @@ import json
 import re
 from django.shortcuts import render
 from django.conf import settings
-from moviepy import VideoFileClip
+from moviepy.editor import VideoFileClip
 from pydub import AudioSegment
 from pydub.utils import make_chunks
 import speech_recognition as sr
