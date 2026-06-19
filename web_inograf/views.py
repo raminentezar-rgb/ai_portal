@@ -91,13 +91,10 @@ Text to analyze:
         result_data = None
         for attempt in range(3):
             try:
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                    future = executor.submit(g4f.ChatCompletion.create,
+                    response = g4f.ChatCompletion.create(
                         model=g4f.models.default,
                         messages=[{"role": "user", "content": prompt}]
                     )
-                    response = future.result(timeout=45)
                 
                 result_data = parse_inograf_json(str(response))
                 if result_data:

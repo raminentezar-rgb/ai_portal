@@ -89,13 +89,10 @@ def video_to_text(request):
                 prompt = f"Translate the following text to the language code '{output_language}'. Return only the translated text, no other comments:\n\n{final_text[:15000]}"
                 for attempt in range(2):
                     try:
-                        import concurrent.futures
-                        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                            future = executor.submit(g4f.ChatCompletion.create,
+                            response = g4f.ChatCompletion.create(
                                 model=g4f.models.default,
                                 messages=[{"role": "user", "content": prompt}]
                             )
-                            response = future.result(timeout=25)
                         translated_text = str(response).strip()
                         if translated_text.startswith('```'):
                             translated_text = translated_text.split('\n', 1)[-1]
