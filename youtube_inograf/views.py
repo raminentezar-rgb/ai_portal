@@ -56,10 +56,10 @@ Text:
         
         for attempt in range(3):
             try:
-                    response = g4f.ChatCompletion.create(
-                        model=g4f.models.default,
-                        messages=[{"role": "user", "content": prompt}]
-                    )
+                response = g4f.ChatCompletion.create(
+                    model=g4f.models.default,
+                    messages=[{"role": "user", "content": prompt}]
+                )
                 
                 response_text = str(response).strip()
                 if response_text.startswith('```json'):
@@ -191,10 +191,10 @@ Text:
         
         for attempt in range(3):
             try:
-                    response = g4f.ChatCompletion.create(
-                        model=g4f.models.default,
-                        messages=[{"role": "user", "content": prompt}]
-                    )
+                response = g4f.ChatCompletion.create(
+                    model=g4f.models.default,
+                    messages=[{"role": "user", "content": prompt}]
+                )
                 
                 response_text = str(response).strip()
                 if response_text.startswith('```html'):

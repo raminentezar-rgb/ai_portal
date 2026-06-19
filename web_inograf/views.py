@@ -91,10 +91,10 @@ Text to analyze:
         result_data = None
         for attempt in range(3):
             try:
-                    response = g4f.ChatCompletion.create(
-                        model=g4f.models.default,
-                        messages=[{"role": "user", "content": prompt}]
-                    )
+                response = g4f.ChatCompletion.create(
+                    model=g4f.models.default,
+                    messages=[{"role": "user", "content": prompt}]
+                )
                 
                 result_data = parse_inograf_json(str(response))
                 if result_data:

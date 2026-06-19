@@ -71,10 +71,10 @@ def pic_text(request):
                 prompt = f"Translate the following text to the language code '{output_language}'. Return only the translated text, no other comments:\n\n{extracted_text[:15000]}"
                 for attempt in range(3):
                     try:
-                            response = g4f.ChatCompletion.create(
-                                model=g4f.models.default,
-                                messages=[{"role": "user", "content": prompt}]
-                            )
+                        response = g4f.ChatCompletion.create(
+                            model=g4f.models.default,
+                            messages=[{"role": "user", "content": prompt}]
+                        )
                         translated_text = str(response).strip()
                         if translated_text.startswith('```'):
                             translated_text = translated_text.split('\n', 1)[-1]

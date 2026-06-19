@@ -73,10 +73,10 @@ Answer the user's questions truthfully. If the answer is not in the document, po
                 
             messages.append({"role": "user", "content": user_message})
 
-                response = g4f.ChatCompletion.create(
-                    model=g4f.models.default,
-                    messages=messages
-                )
+            response = g4f.ChatCompletion.create(
+                model=g4f.models.default,
+                messages=messages
+            )
             
             return JsonResponse({'status': 'success', 'reply': str(response)})
             
