@@ -35,7 +35,7 @@ moviepy==2.2.1
 multidict==6.7.1
 nest-asyncio2==1.7.2
 nltk==3.9.4
-numpy==2.4.6
+numpy
 pillow==11.3.0
 proglog==0.1.12
 propcache==0.5.2
