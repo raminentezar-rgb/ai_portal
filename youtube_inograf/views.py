@@ -155,6 +155,17 @@ Text:
             'icon': icons[i % len(icons)],
         })
         
+    try:
+        from deep_translator import GoogleTranslator
+        translator = GoogleTranslator(source='auto', target=output_lang)
+        for item in infographic_data:
+            if item.get('title'):
+                item['title'] = translator.translate(item['title'])
+            if item.get('text'):
+                item['text'] = translator.translate(item['text'])
+    except Exception as e:
+        print(f"Fallback translation failed: {e}")
+        
     return infographic_data
 
 def generate_ebook_content(text, output_lang="en"):
