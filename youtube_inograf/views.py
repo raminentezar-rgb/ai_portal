@@ -56,10 +56,18 @@ Text:
         
         for attempt in range(3):
             try:
-                response = g4f.ChatCompletion.create(
-                    model=g4f.models.default,
-                    messages=[{"role": "user", "content": prompt}]
-                )
+                import concurrent.futures
+
+                executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+
+
+                future = executor.submit(g4f.ChatCompletion.create, model=g4f.models.default, messages=[{"role": "user", "content": prompt}])
+
+
+                response = future.result(timeout=60)
+
+
+                executor.shutdown(wait=False)
                 
                 response_text = str(response).strip()
                 if response_text.startswith('```json'):
@@ -191,10 +199,18 @@ Text:
         
         for attempt in range(3):
             try:
-                response = g4f.ChatCompletion.create(
-                    model=g4f.models.default,
-                    messages=[{"role": "user", "content": prompt}]
-                )
+                import concurrent.futures
+
+                executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+
+
+                future = executor.submit(g4f.ChatCompletion.create, model=g4f.models.default, messages=[{"role": "user", "content": prompt}])
+
+
+                response = future.result(timeout=60)
+
+
+                executor.shutdown(wait=False)
                 
                 response_text = str(response).strip()
                 if response_text.startswith('```html'):
@@ -290,6 +306,7 @@ def youtube_to_image(request):
                 'outtmpl': temp_download_path,
                 'quiet': True,
                 'no_warnings': True,
+                'nopart': True,
             }
             with YoutubeDL(ydl_opts) as ydl:
                 ydl.download([youtube_url])
@@ -329,10 +346,34 @@ def youtube_to_image(request):
             extracted_text = ""
             chunk_data_list = list(enumerate(chunks))
             
-            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-                results = executor.map(process_chunk, chunk_data_list)
-                for res in results:
+            executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
+
+            
+            try:
+
+            
+                for res in executor.map(process_chunk, chunk_data_list, timeout=180):
+
+            
                     extracted_text += res
+
+            
+            except concurrent.futures.TimeoutError:
+
+            
+                extracted_text += "\n[Speech Recognition Timeout: Part of the audio could not be processed]\n"
+
+            
+            except Exception as e:
+
+            
+                pass
+
+            
+            finally:
+
+            
+                executor.shutdown(wait=False)
                     
             if not extracted_text.strip():
                 return render(request, 'youtube_inograf/youtube_inograf.html', {'error': 'No speech could be recognized in this video.'})

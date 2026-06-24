@@ -73,10 +73,22 @@ Answer the user's questions truthfully. If the answer is not in the document, po
                 
             messages.append({"role": "user", "content": user_message})
 
-            response = g4f.ChatCompletion.create(
-                model=g4f.models.default,
-                messages=messages
-            )
+            import concurrent.futures
+
+
+            executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+
+
+
+            future = executor.submit(g4f.ChatCompletion.create, model=g4f.models.default, messages=messages)
+
+
+
+            response = future.result(timeout=60)
+
+
+
+            executor.shutdown(wait=False)
             
             return JsonResponse({'status': 'success', 'reply': str(response)})
             
