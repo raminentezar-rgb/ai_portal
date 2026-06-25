@@ -42,82 +42,86 @@ def youtube_to_text(request):
         temp_audio_path = os.path.join(settings.BASE_DIR, f'temp_audio_{session_id}.wav')
         
         try:
-            # 1. Download YouTube Audio using yt-dlp
-            ydl_opts = {
-                'format': 'bestaudio[ext=m4a]/bestaudio',
-                'outtmpl': temp_download_path,
-                'quiet': True,
-                'no_warnings': True,
-                'nopart': True,
-            }
-            with YoutubeDL(ydl_opts) as ydl:
-                ydl.download([youtube_url])
+            from youtube_utils import extract_youtube_transcript
+            extracted_text = extract_youtube_transcript(youtube_url, video_language) or ""
+            
+            if not extracted_text.strip():
+                # 1. Download YouTube Audio using yt-dlp
+                ydl_opts = {
+                    'format': 'bestaudio[ext=m4a]/bestaudio',
+                    'outtmpl': temp_download_path,
+                    'quiet': True,
+                    'no_warnings': True,
+                    'nopart': True,
+                }
+                with YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([youtube_url])
+                    
+                if not os.path.exists(temp_download_path):
+                    raise ValueError("Failed to download audio from the YouTube video.")
+    
+                # 2. Convert Audio to WAV using moviepy
+                clip = AudioFileClip(temp_download_path)
+                clip.write_audiofile(temp_audio_path, logger=None)
+                clip.close()
                 
-            if not os.path.exists(temp_download_path):
-                raise ValueError("Failed to download audio from the YouTube video.")
-
-            # 2. Convert Audio to WAV using moviepy
-            clip = AudioFileClip(temp_download_path)
-            clip.write_audiofile(temp_audio_path, logger=None)
-            clip.close()
-            
-            # 3. Process Audio (Chunking for long files)
-            audio = AudioSegment.from_file(temp_audio_path)
-            chunk_length_ms = 60000 # 60 seconds
-            chunks = make_chunks(audio, chunk_length_ms)
-            
-            def process_chunk(chunk_data):
-                i, chunk = chunk_data
-                chunk_path = os.path.join(settings.BASE_DIR, f'temp_chunk_{session_id}_{i}.wav')
-                chunk.export(chunk_path, format="wav")
+                # 3. Process Audio (Chunking for long files)
+                audio = AudioSegment.from_file(temp_audio_path)
+                chunk_length_ms = 60000 # 60 seconds
+                chunks = make_chunks(audio, chunk_length_ms)
                 
-                local_recognizer = sr.Recognizer()
-                text_result = ""
-                with sr.AudioFile(chunk_path) as source:
-                    audio_data = local_recognizer.record(source)
-                    try:
-                        text = local_recognizer.recognize_google(audio_data, language=video_language)
-                        text_result = text + " "
-                    except sr.UnknownValueError:
-                        pass # Ignore silent chunks or unrecognizable parts
-                    except sr.RequestError as e:
-                        text_result = f"\n[API Error: {e}]\n"
+                def process_chunk(chunk_data):
+                    i, chunk = chunk_data
+                    chunk_path = os.path.join(settings.BASE_DIR, f'temp_chunk_{session_id}_{i}.wav')
+                    chunk.export(chunk_path, format="wav")
+                    
+                    local_recognizer = sr.Recognizer()
+                    text_result = ""
+                    with sr.AudioFile(chunk_path) as source:
+                        audio_data = local_recognizer.record(source)
+                        try:
+                            text = local_recognizer.recognize_google(audio_data, language=video_language)
+                            text_result = text + " "
+                        except sr.UnknownValueError:
+                            pass # Ignore silent chunks or unrecognizable parts
+                        except sr.RequestError as e:
+                            text_result = f"\n[API Error: {e}]\n"
+                    
+                    if os.path.exists(chunk_path):
+                        os.remove(chunk_path)
+                    return text_result
+    
+                extracted_text = ""
+                chunk_data_list = list(enumerate(chunks))
                 
-                if os.path.exists(chunk_path):
-                    os.remove(chunk_path)
-                return text_result
-
-            extracted_text = ""
-            chunk_data_list = list(enumerate(chunks))
-            
-            executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
-
-            
-            try:
-
-            
-                for res in executor.map(process_chunk, chunk_data_list, timeout=180):
-
-            
-                    extracted_text += res
-
-            
-            except concurrent.futures.TimeoutError:
-
-            
-                extracted_text += "\n[Speech Recognition Timeout: Part of the audio could not be processed]\n"
-
-            
-            except Exception as e:
-
-            
-                pass
-
-            
-            finally:
-
-            
-                executor.shutdown(wait=False)
+                executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
+    
+                
+                try:
+    
+                
+                    for res in executor.map(process_chunk, chunk_data_list, timeout=180):
+    
+                
+                        extracted_text += res
+    
+                
+                except concurrent.futures.TimeoutError:
+    
+                
+                    extracted_text += "\n[Speech Recognition Timeout: Part of the audio could not be processed]\n"
+    
+                
+                except Exception as e:
+    
+                
+                    pass
+    
+                
+                finally:
+    
+                
+                    executor.shutdown(wait=False)
                     
             if not extracted_text.strip():
                 return render(request, 'youtube_text/youtube_text.html', {'error': 'No speech could be recognized in this video.'})
