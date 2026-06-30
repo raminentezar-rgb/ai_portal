@@ -383,9 +383,7 @@ def youtube_to_image(request):
 
     
                 
-                            extracted_text += "
-[Speech Recognition Timeout: Audio chunk skipped]
-"
+                            extracted_text += "\n[Speech Recognition Timeout: Audio chunk skipped]\n"
 
     
                 

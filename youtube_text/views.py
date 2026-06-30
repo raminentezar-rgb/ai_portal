@@ -129,9 +129,7 @@ def youtube_to_text(request):
 
     
                 
-                            extracted_text += "
-[Speech Recognition Timeout: Audio chunk skipped]
-"
+                            extracted_text += "\n[Speech Recognition Timeout: Audio chunk skipped]\n"
 
     
                 

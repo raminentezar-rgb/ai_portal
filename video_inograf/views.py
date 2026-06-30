@@ -379,9 +379,7 @@ def video_to_inograf(request):
 
 
             
-                        extracted_text += "
-[Speech Recognition Timeout: Audio chunk skipped]
-"
+                        extracted_text += "\n[Speech Recognition Timeout: Audio chunk skipped]\n"
 
 
             
