@@ -113,7 +113,6 @@ def video_to_text(request):
                 prompt = f"Translate the following text to the language code '{output_language}'. Return only the translated text, no other comments:\n\n{final_text[:15000]}"
                 for attempt in range(2):
                     try:
-                        import concurrent.futures
 
                         executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 

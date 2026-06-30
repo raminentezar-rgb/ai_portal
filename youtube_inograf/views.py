@@ -56,7 +56,6 @@ Text:
         
         for attempt in range(3):
             try:
-                import concurrent.futures
 
                 executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
@@ -199,7 +198,6 @@ Text:
         
         for attempt in range(3):
             try:
-                import concurrent.futures
 
                 executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 

@@ -126,7 +126,6 @@ Audio Transcript to analyze:
             result_data = None
             for attempt in range(3):
                 try:
-                    import concurrent.futures
 
                     executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 

@@ -73,7 +73,6 @@ Answer the user's questions truthfully. If the answer is not in the document, po
                 
             messages.append({"role": "user", "content": user_message})
 
-            import concurrent.futures
 
 
             executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
