@@ -349,26 +349,60 @@ def video_to_inograf(request):
             
             try:
 
-            
-                for res in executor.map(process_chunk, chunk_data_list, timeout=180):
 
             
-                    extracted_text += res
+                import socket
+
 
             
-            except concurrent.futures.TimeoutError:
+                socket.setdefaulttimeout(30)
+
 
             
-                extracted_text += "\n[Speech Recognition Timeout: Part of the audio could not be processed]\n"
+                futures = [executor.submit(process_chunk, chunk) for chunk in chunk_data_list]
+
+
+            
+                for future in futures:
+
+
+            
+                    try:
+
+
+            
+                        extracted_text += future.result(timeout=45)
+
+
+            
+                    except concurrent.futures.TimeoutError:
+
+
+            
+                        extracted_text += "
+[Speech Recognition Timeout: Audio chunk skipped]
+"
+
+
+            
+                    except Exception as e:
+
+
+            
+                        pass
+
 
             
             except Exception as e:
 
+
             
                 pass
 
+
             
             finally:
+
 
             
                 executor.shutdown(wait=False)

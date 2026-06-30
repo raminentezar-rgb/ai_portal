@@ -79,10 +79,23 @@ def audio_inograf(request):
 
             # 4. Parallel Transcription
             results = []
-            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            import socket
+            socket.setdefaulttimeout(30)
+            
+            executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
+            try:
                 futures = [executor.submit(process_chunk, (i, chunk)) for i, chunk in enumerate(chunks)]
                 for future in concurrent.futures.as_completed(futures):
-                    results.append(future.result())
+                    try:
+                        results.append(future.result(timeout=45))
+                    except concurrent.futures.TimeoutError:
+                        pass
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+            finally:
+                executor.shutdown(wait=False)
             
             # Sort by chunk index and combine
             results.sort(key=lambda x: x[0])

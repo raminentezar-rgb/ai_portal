@@ -352,27 +352,61 @@ def youtube_to_image(request):
     
                 
                 try:
+
     
                 
-                    for res in executor.map(process_chunk, chunk_data_list, timeout=180):
+                    import socket
+
     
                 
-                        extracted_text += res
+                    socket.setdefaulttimeout(30)
+
     
                 
-                except concurrent.futures.TimeoutError:
+                    futures = [executor.submit(process_chunk, chunk) for chunk in chunk_data_list]
+
     
                 
-                    extracted_text += "\n[Speech Recognition Timeout: Part of the audio could not be processed]\n"
+                    for future in futures:
+
+    
+                
+                        try:
+
+    
+                
+                            extracted_text += future.result(timeout=45)
+
+    
+                
+                        except concurrent.futures.TimeoutError:
+
+    
+                
+                            extracted_text += "
+[Speech Recognition Timeout: Audio chunk skipped]
+"
+
+    
+                
+                        except Exception as e:
+
+    
+                
+                            pass
+
     
                 
                 except Exception as e:
+
     
                 
                     pass
+
     
                 
                 finally:
+
     
                 
                     executor.shutdown(wait=False)
